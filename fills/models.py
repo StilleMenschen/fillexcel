@@ -23,7 +23,7 @@ class IdDateTimeBase(models.Model):
 
 class FillingRequirement(IdDateTimeBase):
     username = models.CharField(max_length=255)
-    remark = models.TextField(null=True)
+    remark = models.TextField(blank=True)
     file_id = models.CharField(max_length=255)
     original_filename = models.CharField(max_length=255)
     start_line = models.PositiveIntegerField()
@@ -31,21 +31,6 @@ class FillingRequirement(IdDateTimeBase):
 
     def __str__(self):
         return f"<[{self.original_filename}] {self.start_line} of {self.line_number} line>"
-
-
-class ColumnRule(IdDateTimeBase):
-    # Foreign key association
-    filling_requirement = models.ForeignKey(FillingRequirement,
-                                            on_delete=models.CASCADE)
-    # Attribute
-    rule_id = models.BigIntegerField()
-    data_param_id = models.BigIntegerField()
-    column_name = models.CharField(max_length=255)
-    column_type = models.CharField(max_length=128)
-    associated_of = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"<[{self.column_name}] {self.column_type} - {self.rule_id}>"
 
 
 class GenerateRule(IdDateTimeBase):
@@ -59,14 +44,14 @@ class GenerateRule(IdDateTimeBase):
 
 
 class GenerateRuleParameter(IdDateTimeBase):
-    # Foreign key association
+    # 规则
     rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
-    # Attribute
+
     name = models.CharField(max_length=255)
     data_type = models.CharField(max_length=255)
     description = models.TextField()
     required = models.BooleanField()
-    default_value = models.CharField(null=True, max_length=255)
+    default_value = models.CharField(blank=True, max_length=255)
     need_outside_data = models.BooleanField()
 
     def __str__(self) -> str:
@@ -101,12 +86,31 @@ class DataBind(IdDateTimeBase):
 
 
 class DataParameter(IdDateTimeBase):
-    param_rule_id = models.BigIntegerField()
+    # 规则
+    param_rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
+
     name = models.CharField(max_length=255)
-    value = models.CharField(max_length=255)
-    expressions = models.CharField(max_length=512)
-    data_define_group_id = models.BigIntegerField()
-    data_bind_group_id = models.BigIntegerField()
+    value = models.CharField(blank=True, default='', max_length=255)
+    expressions = models.CharField(blank=True, max_length=512)
+    data_define_group_id = models.BigIntegerField(null=True, blank=True)
+    data_bind_group_id = models.BigIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f'<[{self.name}] {self.value}>'
+
+
+class ColumnRule(IdDateTimeBase):
+    # 填充要求
+    filling_requirement = models.ForeignKey(FillingRequirement,
+                                            on_delete=models.CASCADE)
+    # 规则
+    rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
+    # 规则值列表
+    data_param = models.ForeignKey(DataParameter, on_delete=models.CASCADE)
+
+    column_name = models.CharField(max_length=255)
+    column_type = models.CharField(max_length=128)
+    associated_of = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"<[{self.column_name}] {self.column_type} - {self.rule_id}>"

@@ -16,7 +16,7 @@ def value_list_iter(values):
 
 def random_number_iter(start=1, stop=42, is_decimal=False, ndigits=2):
     if is_decimal:
-        func = lambda: round(random.uniform(start, stop), ndigits)
+        func = functools.partial(_random_decimal, start, stop, ndigits)
     else:
         func = functools.partial(random.randrange, int(start), int(stop))
     while True:
@@ -53,13 +53,17 @@ def associated_fill(key_map_list: list[tuple], value_dict: dict):
         yield column, value_dict.get(name, '')
 
 
+def _random_decimal(start, stop, ndigits):
+    return round(random.uniform(start, stop), ndigits)
+
+
 def _replace_expressions_variable(expressions, value_dict):
     pattern = re.compile(r"\{([A-Z]+)\}")
     return pattern.sub(lambda m: value_dict.get(m.group(1), m.group(0)), expressions)
 
 
 def _validate_expressions(text):
-    valid = re.compile('^[0-9a-zA-Z\-+*/.{}() ]+$')
+    valid = re.compile('^[0-9a-zA-Z-+*/.{}() ]+$')
     if valid.match(text):
         return True
     else:

@@ -79,6 +79,9 @@ DATABASES = {
         'PASSWORD': 'y7wdPV46XtnQevmJ',
         'HOST': 'gz.tystnad.tech',  # 如果数据库在本地，请填写本机 IP 地址或者 localhost
         'PORT': '42345',  # 默认端口号是 5432
+        "TEST": {
+            "NAME": "test_fillexcel"
+        }
     }
 }
 
