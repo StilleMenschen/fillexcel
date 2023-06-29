@@ -11,11 +11,12 @@ class FillingRequirementAdmin(admin.ModelAdmin):
 
 
 class ColumnRuleAdmin(admin.ModelAdmin):
-    list_display = ('filling_requirement_id', 'rule_id', 'data_param_id', 'column_name', 'column_type', 'associated_of')
+    list_display = ('requirement_id', 'rule_id', 'column_name', 'column_type', 'associated_of')
 
 
 class DataParameterAdmin(admin.ModelAdmin):
-    list_display = ('param_rule_id', 'name', 'value', 'expressions', 'data_define_group_id', 'data_bind_group_id')
+    list_display = ('param_rule_id', 'column_rule_id', 'name', 'value', 'expressions', 'data_define_group_id',
+                    'data_bind_group_id')
 
 
 class GenerateRuleAdmin(admin.ModelAdmin):

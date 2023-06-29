@@ -85,9 +85,25 @@ class DataBind(IdDateTimeBase):
         return f'<[{self.data_name} - {self.column_name}] {self.group_id}>'
 
 
+class ColumnRule(IdDateTimeBase):
+    # 填充要求
+    requirement = models.ForeignKey(FillingRequirement, on_delete=models.CASCADE)
+    # 规则
+    rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
+
+    column_name = models.CharField(max_length=255)
+    column_type = models.CharField(max_length=128)
+    associated_of = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"<[{self.column_name}] {self.column_type} - {self.rule_id}>"
+
+
 class DataParameter(IdDateTimeBase):
     # 规则
     param_rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
+    # 列规则
+    column_rule = models.ForeignKey(ColumnRule, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
     value = models.CharField(blank=True, default='', max_length=255)
@@ -97,20 +113,3 @@ class DataParameter(IdDateTimeBase):
 
     def __str__(self) -> str:
         return f'<[{self.name}] {self.value}>'
-
-
-class ColumnRule(IdDateTimeBase):
-    # 填充要求
-    filling_requirement = models.ForeignKey(FillingRequirement,
-                                            on_delete=models.CASCADE)
-    # 规则
-    rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
-    # 规则值列表
-    data_param = models.ForeignKey(DataParameter, on_delete=models.CASCADE)
-
-    column_name = models.CharField(max_length=255)
-    column_type = models.CharField(max_length=128)
-    associated_of = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"<[{self.column_name}] {self.column_type} - {self.rule_id}>"
