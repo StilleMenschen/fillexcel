@@ -127,3 +127,42 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 创建log文件的文件夹
+LOG_DIR = BASE_DIR / 'var' / 'logs'
+if not LOG_DIR.exists():
+    LOG_DIR.mkdir(parents=True)
+
+# 基本配置，可以复用的
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # 禁用已经存在的logger实例
+    'filters': {'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'}},
+    'formatters': {  # 定义了两种日志格式
+        'verbose': {  # 详细
+            'format': '%(asctime)s %(levelname)s %(module)s '
+                      '%(process)d %(thread)d %(message)s'
+        },
+        'simple': {  # 简单
+            'format': '[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s'
+        },
+    },
+    'handlers': {  # 定义了三种日志处理方式
+        'file': {  # 对INFO级别以上信息以日志文件形式保存
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',  # 滚动生成日志，切割
+            'filename': LOG_DIR / 'django.log',  # 日志文件名
+            'maxBytes': 1024 * 1024 * 10,  # 单个日志文件最大为10M
+            'backupCount': 7,  # 日志备份文件最大数量
+            'formatter': 'simple',  # 简单格式
+            'encoding': 'utf-8',  # 放置中文乱码
+        },
+        'console': {  # 打印到终端console
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {'level': 'INFO', 'handlers': ['console', 'file']},
+    'loggers': {}
+}

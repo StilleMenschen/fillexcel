@@ -1,6 +1,7 @@
-from django.shortcuts import render
+from django.http import JsonResponse
 from django.views import generic
 from .models import FillingRequirement
+from .service import fill_excel
 
 
 # Create your views here.
@@ -10,3 +11,9 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         return FillingRequirement.objects.all()
+
+
+def get_requirement(request, req_id: int):
+    fr = FillingRequirement.objects.get(pk=req_id)
+    fill_excel(fr)
+    return JsonResponse(dict(name='jack', age=18))
