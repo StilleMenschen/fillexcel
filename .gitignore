@@ -139,3 +139,7 @@ cython_debug/
 
 # Jetbrains
 .idea/
+
+# Excel
+*.xls
+*.xlsx

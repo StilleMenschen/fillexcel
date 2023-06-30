@@ -16,14 +16,17 @@ def value_list_iter(values):
 
 def random_number_iter(start=1, stop=42, is_decimal=False, ndigits=2):
     if is_decimal:
+        start, stop = float(start), float(stop)
         func = functools.partial(_random_decimal, start, stop, ndigits)
     else:
+        start, stop = int(start), int(stop)
         func = functools.partial(random.randrange, int(start), int(stop))
     while True:
         yield func()
 
 
 def time_serial_iter(repeat=1):
+    repeat = int(repeat)
     now = datetime.datetime.now()
     prefix = now.strftime('%Y%m%d-%H%M%S')
     c = itertools.count(1)

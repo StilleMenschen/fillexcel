@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.views import generic
+
 from .models import FillingRequirement
 from .service import fill_excel
 
