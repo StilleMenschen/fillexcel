@@ -1,12 +1,13 @@
 from django.contrib import admin
 
+from .models import DataValueList
 from .models import FillingRequirement, ColumnRule, DataParameter
 from .models import GenerateRule, GenerateRuleParameter
 
 
 # Register your models here.
 class FillingRequirementAdmin(admin.ModelAdmin):
-    list_display = ('username', 'remark', 'file_id', 'original_filename', 'start_line', 'line_number', 'created_at',
+    list_display = ('id', 'username', 'file_id', 'original_filename', 'start_line', 'line_number', 'created_at',
                     'updated_at')
 
 
@@ -28,8 +29,14 @@ class GenerateRuleParameterAdmin(admin.ModelAdmin):
                     'need_outside_data', 'created_at', 'updated_at')
 
 
+class DataValueListAdmin(admin.ModelAdmin):
+    list_display = ('id', 'group_id', 'created_at', 'updated_at')
+
+
 admin.site.register(FillingRequirement, FillingRequirementAdmin)
 admin.site.register(ColumnRule, ColumnRuleAdmin)
 admin.site.register(DataParameter, DataParameterAdmin)
 admin.site.register(GenerateRule, GenerateRuleAdmin)
 admin.site.register(GenerateRuleParameter, GenerateRuleParameterAdmin)
+
+admin.site.register(DataValueList, DataValueListAdmin)

@@ -1,3 +1,5 @@
+import time
+
 from django.http import JsonResponse
 from django.views import generic
 
@@ -15,6 +17,8 @@ class IndexView(generic.ListView):
 
 
 def get_requirement(request, req_id: int):
+    t0 = time.perf_counter()
     fr = FillingRequirement.objects.get(pk=req_id)
     fill_excel(fr)
-    return JsonResponse(dict(name='jack', age=18))
+    took = time.perf_counter()
+    return JsonResponse(dict(requirement=req_id, took=took))

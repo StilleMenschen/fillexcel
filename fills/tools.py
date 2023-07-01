@@ -14,6 +14,11 @@ def value_list_iter(values):
     return itertools.cycle(values)
 
 
+def none_iter():
+    while True:
+        yield None
+
+
 def random_number_iter(start=1, stop=42, is_decimal=False, ndigits=2):
     if is_decimal:
         start, stop = float(start), float(stop)

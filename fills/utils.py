@@ -67,5 +67,5 @@ class SnowFlake:
 
 if __name__ == '__main__':
     sf = SnowFlake(0, 0)
-    for _ in range(100):
+    for _ in range(8):
         print(sf.next_id())

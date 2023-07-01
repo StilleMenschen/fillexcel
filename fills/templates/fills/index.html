@@ -12,7 +12,7 @@
 {% if filling_requirement_list %}
     <ul>
     {% for filling_requirement in filling_requirement_list %}
-        <li>{{ filling_requirement.username }}</li>
+        <li><a href="{% url 'fills:get_requirement' filling_requirement.id %}" target="_blank">{{ filling_requirement.username }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
