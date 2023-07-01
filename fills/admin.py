@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import DataValueList
+from .models import DataSet, DataSetDefine, DataSetValue, DataSetBind
 from .models import FillingRequirement, ColumnRule, DataParameter
 from .models import GenerateRule, GenerateRuleParameter
 
@@ -16,8 +16,7 @@ class ColumnRuleAdmin(admin.ModelAdmin):
 
 
 class DataParameterAdmin(admin.ModelAdmin):
-    list_display = ('param_rule_id', 'column_rule_id', 'name', 'value', 'expressions', 'data_define_group_id',
-                    'data_bind_group_id')
+    list_display = ('param_rule_id', 'column_rule_id', 'name', 'value', 'expressions', 'data_set_id')
 
 
 class GenerateRuleAdmin(admin.ModelAdmin):
@@ -29,8 +28,20 @@ class GenerateRuleParameterAdmin(admin.ModelAdmin):
                     'need_outside_data', 'created_at', 'updated_at')
 
 
-class DataValueListAdmin(admin.ModelAdmin):
-    list_display = ('id', 'group_id', 'created_at', 'updated_at')
+class DataSetAdmin(admin.ModelAdmin):
+    list_display = ('id', 'description', 'data_type')
+
+
+class DataSetDefineAdmin(admin.ModelAdmin):
+    list_display = ('id', 'data_set_id', 'name', 'data_type')
+
+
+class DataSetValueAdmin(admin.ModelAdmin):
+    list_display = ('id', 'data_set_id', 'item')
+
+
+class DataSetBindAdmin(admin.ModelAdmin):
+    list_display = ('id', 'data_set_id', 'data_name', 'column_name')
 
 
 admin.site.register(FillingRequirement, FillingRequirementAdmin)
@@ -39,4 +50,7 @@ admin.site.register(DataParameter, DataParameterAdmin)
 admin.site.register(GenerateRule, GenerateRuleAdmin)
 admin.site.register(GenerateRuleParameter, GenerateRuleParameterAdmin)
 
-admin.site.register(DataValueList, DataValueListAdmin)
+admin.site.register(DataSet, DataSetAdmin)
+admin.site.register(DataSetDefine, DataSetDefineAdmin)
+admin.site.register(DataSetValue, DataSetValueAdmin)
+admin.site.register(DataSetBind, DataSetBindAdmin)

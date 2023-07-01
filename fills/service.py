@@ -2,10 +2,10 @@ import json
 import logging
 import operator
 
-from fills.tasks import excel
-from .models import DataValueList
+from .models import DataSetValue
 from .models import FillingRequirement, ColumnRule, DataParameter
 from .models import GenerateRule
+from .tasks import excel
 from .tools import fixed_value_iter, random_number_iter, time_serial_iter
 from .tools import none_iter
 from .tools import value_list_iter
@@ -15,17 +15,17 @@ __NORMAL_FUNCTIONS__ = {
     'random_number_iter': random_number_iter,
     'time_serial_iter': time_serial_iter
 }
+
 log = logging.getLogger(__name__)
 
 
 def get_value_list_iter(column_rule: ColumnRule, rule: GenerateRule):
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
-    value_group_id = int(param.value)
-    data_value = DataValueList.objects.get(group_id__exact=value_group_id)
-    values = json.loads(data_value.value_list)
+    data_value = DataSetValue.objects.get(data_set__exact=param.data_set_id)
+    values = json.loads(data_value.item)
     log.info('column: ' + column_rule.column_name)
     log.info('function: ' + rule.function_name)
-    log.info('group_id: ' + param.value)
+    log.info('values: ' + data_value.item)
     return value_list_iter(values)
 
 

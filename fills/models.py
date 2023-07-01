@@ -1,3 +1,5 @@
+import reprlib
+
 from django.db import models
 
 from .utils import SnowFlake
@@ -58,31 +60,44 @@ class GenerateRuleParameter(IdDateTimeBase):
         return f'<[{self.name}] {self.data_type}>'
 
 
-class DataDefine(IdDateTimeBase):
-    group_id = models.BigIntegerField()
+class DataSet(IdDateTimeBase):
+    description = models.TextField()
+    data_type = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return f'<[{self.description}] {self.data_type}>'
+
+
+class DataSetDefine(IdDateTimeBase):
+    # 数据集主表
+    data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE)
+
     name = models.CharField(max_length=255)
-    data_type = models.CharField(max_length=128)
-    data_group_id = models.BigIntegerField()
+    data_type = models.CharField(max_length=255)
 
     def __str__(self) -> str:
-        return f'<[{self.name} - {self.data_type}] {self.group_id} {self.data_group_id}>'
+        return f'<[{self.name}] {self.data_type}>'
 
 
-class DataValueList(IdDateTimeBase):
-    group_id = models.BigIntegerField()
-    value_list = models.TextField()
+class DataSetValue(IdDateTimeBase):
+    # 数据集主表
+    data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE)
+
+    item = models.TextField()
 
     def __str__(self) -> str:
-        return f'<[{self.group_id}]>'
+        return f'<[{self.__class__.__name__}] {reprlib.repr(self.item)}>'
 
 
-class DataBind(IdDateTimeBase):
-    group_id = models.BigIntegerField()
+class DataSetBind(IdDateTimeBase):
+    # 数据集主表
+    data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE)
+
     data_name = models.CharField(max_length=255)
     column_name = models.CharField(max_length=255)
 
     def __str__(self) -> str:
-        return f'<[{self.data_name} - {self.column_name}] {self.group_id}>'
+        return f'<[{self.__class__.__name__}] {self.data_name} = {self.column_name}>'
 
 
 class ColumnRule(IdDateTimeBase):
@@ -100,16 +115,15 @@ class ColumnRule(IdDateTimeBase):
 
 
 class DataParameter(IdDateTimeBase):
-    # 规则
-    param_rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
     # 列规则
     column_rule = models.ForeignKey(ColumnRule, on_delete=models.CASCADE)
+    # 规则
+    param_rule = models.ForeignKey(GenerateRuleParameter, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
     value = models.CharField(blank=True, default='', max_length=255)
     expressions = models.CharField(blank=True, max_length=512)
-    data_define_group_id = models.BigIntegerField(null=True, blank=True)
-    data_bind_group_id = models.BigIntegerField(null=True, blank=True)
+    data_set_id = models.BigIntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f'<[{self.name}] {self.value}>'

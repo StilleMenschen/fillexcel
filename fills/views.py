@@ -20,5 +20,5 @@ def get_requirement(request, req_id: int):
     t0 = time.perf_counter()
     fr = FillingRequirement.objects.get(pk=req_id)
     fill_excel(fr)
-    took = time.perf_counter()
+    took = time.perf_counter() - t0
     return JsonResponse(dict(requirement=req_id, took=took))
