@@ -51,7 +51,7 @@ def calculate_expressions(expressions, value_dict):
     if str(expressions) and not _validate_expressions(expressions):
         raise ValueError('expressions is invalid, allow character: 0-9 a-z A-Z +-*/. [space] {} ()')
     if isinstance(value_dict, dict) and not len(value_dict):
-        return ''
+        return None
     compiled_expressions = _replace_expressions_variable(expressions, value_dict)
     return eval(compiled_expressions)
 
@@ -67,7 +67,13 @@ def _random_decimal(start, stop, ndigits):
 
 def _replace_expressions_variable(expressions, value_dict):
     pattern = re.compile(r"\{([A-Z]+)\}")
-    return pattern.sub(lambda m: value_dict.get(m.group(1), m.group(0)), expressions)
+
+    def inner_data_get(match):
+        val = value_dict.get(match.group(1), match.group(0))
+        # 正则替换的数据类型必须是字符串
+        return str(val)
+
+    return pattern.sub(inner_data_get, expressions)
 
 
 def _validate_expressions(text):

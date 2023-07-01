@@ -39,6 +39,7 @@ def write_to_excel(data: dict):
         sheet[f'{column}{start_line}'].value = [(v,) for v in data_list]
         range_len = len(data_list)
         sheet.range(f'{column}{start_line}:{column}{start_line + range_len}').number_format = '@'
+    filename = str(time.time_ns()) + '-' + filename
     p = pathlib.Path(__file__).parent / filename
     book.save(path=p)
     book.close()

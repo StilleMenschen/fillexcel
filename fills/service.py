@@ -1,6 +1,7 @@
 import json
 import logging
 import operator
+import sys
 import time
 
 from .models import DataSetBind, DataSetValue
@@ -9,7 +10,7 @@ from .models import GenerateRule
 from .tasks import write_to_excel
 from .tools import fixed_value_iter, random_number_iter, time_serial_iter
 from .tools import none_iter
-from .tools import value_list_iter, associated_fill
+from .tools import value_list_iter, associated_fill, calculate_expressions
 
 __NORMAL_FUNCTIONS__ = {
     'fixed_value_iter': fixed_value_iter,
@@ -58,9 +59,34 @@ def write_associated_list(column_rule: ColumnRule, rule: GenerateRule,
     log.info(f'associated fill {time.perf_counter() - t0}')
 
 
+def write_calculate_expressions(column_rule: ColumnRule, rule: GenerateRule,
+                                start_line: int, end_line: int, column_data: dict):
+    t0 = time.perf_counter()
+    param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
+    expressions = param.expressions
+    log.info('function: ' + rule.function_name)
+    log.info('expressions: ' + expressions)
+    count = 0
+    data_list = []
+    # 逐行执行
+    for _ in range(start_line, end_line):
+        try:
+            # 取出当前行的列值
+            value_dict = dict(((key, values[count]) for key, values in column_data.items()))
+            # 添加到计算值数据列表
+            data_list.append(calculate_expressions(expressions, value_dict))
+        except Exception as e:
+            log.error(e, exc_info=sys.exc_info())
+        count += 1
+    # 填入数据
+    column_data[column_rule.column_name] = data_list
+    log.info(f'calculate expressions {time.perf_counter() - t0}')
+
+
 __ASSOCIATED_FUNCTION__ = {
     'value_list_iter': write_value_list,
-    'associated_fill': write_associated_list
+    'associated_fill': write_associated_list,
+    'calculate_expressions': write_calculate_expressions
 }
 
 
@@ -89,11 +115,12 @@ def match_normal_iter(column_rule: ColumnRule, rule: GenerateRule):
 
 def fill_excel(fr: FillingRequirement):
     column_rule_list = ColumnRule.objects.filter(requirement_id__exact=fr.id)
+    # 按定义的顺序填充, 需要关联其它数据的放在后面处理, 先处理固定值的
     column_rule_list: list[ColumnRule] = sorted(column_rule_list, key=operator.attrgetter('rule.fill_order'))
     fill_data = {'filename': fr.original_filename, 'startLine': fr.start_line, 'data': {}}
     column_data = fill_data['data']
     # 生成数据
-    start_line, end_line = fr.start_line, fr.start_line + fr.line_number + 1
+    start_line, end_line = fr.start_line, fr.start_line + fr.line_number
     for column_rule in column_rule_list:
         # 有数据关联
         if column_rule.associated_of:
