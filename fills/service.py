@@ -19,14 +19,16 @@ __NORMAL_FUNCTIONS__ = {
 log = logging.getLogger(__name__)
 
 
-def get_value_list_iter(column_rule: ColumnRule, rule: GenerateRule):
+def get_value_list_iter(column_rule: ColumnRule, rule: GenerateRule,
+                        start_line: int, end_line: int, column_data: dict):
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
     data_value = DataSetValue.objects.get(data_set__exact=param.data_set_id)
     values = json.loads(data_value.item)
     log.info('column: ' + column_rule.column_name)
     log.info('function: ' + rule.function_name)
     log.info('values: ' + data_value.item)
-    return value_list_iter(values)
+    column_range = range(start_line, end_line)
+    column_data[column_rule.column_name] = [val for _, val in zip(column_range, value_list_iter(values))]
 
 
 __ASSOCIATED_FUNCTION__ = {
@@ -34,10 +36,13 @@ __ASSOCIATED_FUNCTION__ = {
 }
 
 
-def match_associated_of_iter(column_rule: ColumnRule, rule: GenerateRule):
+def exec_associated_of_iter(column_rule: ColumnRule, rule: GenerateRule,
+                            start_line: int, end_line: int, column_data: dict):
+    # 传入的参数和值
+    args = dict(**locals())
     a_f = __ASSOCIATED_FUNCTION__.get(rule.function_name, None)
     if a_f:
-        return a_f(column_rule, rule)
+        return a_f(**args)
     else:
         return none_iter()
 
@@ -57,16 +62,20 @@ def match_normal_iter(column_rule: ColumnRule, rule: GenerateRule):
 def fill_excel(fr: FillingRequirement):
     column_rule_list = ColumnRule.objects.filter(requirement_id__exact=fr.id)
     column_rule_list: list[ColumnRule] = sorted(column_rule_list, key=operator.attrgetter('rule.fill_order'))
+
     fill_data = {'filename': fr.original_filename, 'startLine': fr.start_line, 'data': {}}
-    data = fill_data['data']
+    column_data = fill_data['data']
+
+    start_line, end_line = fr.start_line, fr.start_line + fr.line_number + 1
     for column_rule in column_rule_list:
         # 有数据关联
         if column_rule.associated_of:
-            it = match_associated_of_iter(column_rule, column_rule.rule)
+            exec_associated_of_iter(column_rule, column_rule.rule, start_line, end_line, column_data)
         # 非关联
         else:
             it = match_normal_iter(column_rule, column_rule.rule)
-        column_range = range(fr.start_line, fr.start_line + fr.line_number + 1)
-        data[column_rule.column_name] = [val for _, val in zip(column_range, it)]
+            column_range = range(start_line, end_line)
+            column_data[column_rule.column_name] = [val for _, val in zip(column_range, it)]
+
     result = excel.delay(fill_data)
     log.info(result.get())
