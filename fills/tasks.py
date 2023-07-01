@@ -6,9 +6,9 @@ from logging.handlers import TimedRotatingFileHandler
 import xlwings as xw
 from celery import Celery
 
-task_app = Celery('fills',
-                  broker='amqp://invoice:40Z9y5RqCNecG6Fx@gz.tystnad.tech:32765//',
-                  backend='redis://default:ZI6vLhsHdKCjeiyw@gz.tystnad.tech:46379/1')
+app = Celery('fills',
+             broker='amqp://invoice:40Z9y5RqCNecG6Fx@gz.tystnad.tech:32765//',
+             backend='redis://default:ZI6vLhsHdKCjeiyw@gz.tystnad.tech:46379/1')
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -26,14 +26,14 @@ log.addHandler(rotating_file_handler)
 
 # celery -A fills.tasks worker -l INFO -c 2 -P eventlet
 
-@task_app.task
-def excel(data: dict):
+@app.task
+def write_to_excel(data: dict):
     t0 = time.perf_counter()
     start_line = data['startLine']
     filename = data['filename']
     d: dict = data['data']
-    app = xw.App(visible=True)
-    book = app.books.active
+    excel_app = xw.App(visible=True)
+    book = excel_app.books.active
     sheet = book.sheets.active
     for column, data_list in d.items():
         sheet[f'{column}{start_line}'].value = [(v,) for v in data_list]
@@ -42,6 +42,6 @@ def excel(data: dict):
     p = pathlib.Path(__file__).parent / filename
     book.save(path=p)
     book.close()
-    app.quit()
+    excel_app.quit()
     log.info(f'elapsed time {time.perf_counter() - t0}')
     return filename

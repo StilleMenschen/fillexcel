@@ -17,6 +17,7 @@ class ColumnRuleAdmin(admin.ModelAdmin):
 
 class DataParameterAdmin(admin.ModelAdmin):
     list_display = ('param_rule_id', 'column_rule_id', 'name', 'value', 'expressions', 'data_set_id')
+    list_filter = ("param_rule_id", 'column_rule_id')
 
 
 class GenerateRuleAdmin(admin.ModelAdmin):
@@ -26,6 +27,7 @@ class GenerateRuleAdmin(admin.ModelAdmin):
 class GenerateRuleParameterAdmin(admin.ModelAdmin):
     list_display = ('rule_id', 'name', 'data_type', 'description', 'required', 'default_value',
                     'need_outside_data', 'created_at', 'updated_at')
+    list_filter = ("rule_id",)
 
 
 class DataSetAdmin(admin.ModelAdmin):
@@ -41,7 +43,7 @@ class DataSetValueAdmin(admin.ModelAdmin):
 
 
 class DataSetBindAdmin(admin.ModelAdmin):
-    list_display = ('id', 'data_set_id', 'data_name', 'column_name')
+    list_display = ('id', 'data_set_id', 'column_name', 'data_name')
 
 
 admin.site.register(FillingRequirement, FillingRequirementAdmin)

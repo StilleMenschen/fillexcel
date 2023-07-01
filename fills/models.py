@@ -57,7 +57,7 @@ class GenerateRuleParameter(IdDateTimeBase):
     need_outside_data = models.BooleanField()
 
     def __str__(self) -> str:
-        return f'<[{self.name}] {self.data_type}>'
+        return f'<[{self.name}] {self.data_type} {self.description}>'
 
 
 class DataSet(IdDateTimeBase):
@@ -93,8 +93,8 @@ class DataSetBind(IdDateTimeBase):
     # 数据集主表
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE)
 
-    data_name = models.CharField(max_length=255)
     column_name = models.CharField(max_length=255)
+    data_name = models.CharField(max_length=255)
 
     def __str__(self) -> str:
         return f'<[{self.__class__.__name__}] {self.data_name} = {self.column_name}>'

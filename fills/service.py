@@ -1,14 +1,15 @@
 import json
 import logging
 import operator
+import time
 
-from .models import DataSetValue
+from .models import DataSetBind, DataSetValue
 from .models import FillingRequirement, ColumnRule, DataParameter
 from .models import GenerateRule
-from .tasks import excel
+from .tasks import write_to_excel
 from .tools import fixed_value_iter, random_number_iter, time_serial_iter
 from .tools import none_iter
-from .tools import value_list_iter
+from .tools import value_list_iter, associated_fill
 
 __NORMAL_FUNCTIONS__ = {
     'fixed_value_iter': fixed_value_iter,
@@ -19,8 +20,8 @@ __NORMAL_FUNCTIONS__ = {
 log = logging.getLogger(__name__)
 
 
-def get_value_list_iter(column_rule: ColumnRule, rule: GenerateRule,
-                        start_line: int, end_line: int, column_data: dict):
+def write_value_list(column_rule: ColumnRule, rule: GenerateRule,
+                     start_line: int, end_line: int, column_data: dict):
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
     data_value = DataSetValue.objects.get(data_set__exact=param.data_set_id)
     values = json.loads(data_value.item)
@@ -31,8 +32,35 @@ def get_value_list_iter(column_rule: ColumnRule, rule: GenerateRule,
     column_data[column_rule.column_name] = [val for _, val in zip(column_range, value_list_iter(values))]
 
 
+def write_associated_list(column_rule: ColumnRule, rule: GenerateRule,
+                          start_line: int, end_line: int, column_data: dict):
+    # 已经填入的值不需要重复填入
+    if column_rule.column_name in column_data:
+        return
+    t0 = time.perf_counter()
+    param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
+    data_bind = DataSetBind.objects.filter(data_set__exact=param.data_set_id)
+    data_value = DataSetValue.objects.filter(data_set__exact=param.data_set_id)
+    log.info(f'bind column count: {len(data_bind)}')
+    log.info('function: ' + rule.function_name)
+    # 数据集
+    value_iter = value_list_iter((json.loads(v.item) for v in data_value))
+    # 数据绑定
+    bind_list = [(v.column_name, v.data_name) for v in data_bind]
+    # 初始化列的数组
+    for col, _ in bind_list:
+        column_data[col] = []
+    # 逐行执行
+    for _ in range(start_line, end_line):
+        # 每行的所有关联数据
+        for col, val in associated_fill(bind_list, next(value_iter)):
+            column_data[col].append(val)
+    log.info(f'associated fill {time.perf_counter() - t0}')
+
+
 __ASSOCIATED_FUNCTION__ = {
-    'value_list_iter': get_value_list_iter
+    'value_list_iter': write_value_list,
+    'associated_fill': write_associated_list
 }
 
 
@@ -62,10 +90,9 @@ def match_normal_iter(column_rule: ColumnRule, rule: GenerateRule):
 def fill_excel(fr: FillingRequirement):
     column_rule_list = ColumnRule.objects.filter(requirement_id__exact=fr.id)
     column_rule_list: list[ColumnRule] = sorted(column_rule_list, key=operator.attrgetter('rule.fill_order'))
-
     fill_data = {'filename': fr.original_filename, 'startLine': fr.start_line, 'data': {}}
     column_data = fill_data['data']
-
+    # 生成数据
     start_line, end_line = fr.start_line, fr.start_line + fr.line_number + 1
     for column_rule in column_rule_list:
         # 有数据关联
@@ -76,6 +103,6 @@ def fill_excel(fr: FillingRequirement):
             it = match_normal_iter(column_rule, column_rule.rule)
             column_range = range(start_line, end_line)
             column_data[column_rule.column_name] = [val for _, val in zip(column_range, it)]
-
-    result = excel.delay(fill_data)
+    # 异步处理写入数据
+    result = write_to_excel.delay(fill_data)
     log.info(result.get())
