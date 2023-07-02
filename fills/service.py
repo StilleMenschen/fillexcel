@@ -1,3 +1,4 @@
+import collections
 import json
 import logging
 import operator
@@ -10,7 +11,7 @@ from .models import GenerateRule
 from .tasks import write_to_excel
 from .tools import fixed_value_iter, random_number_iter, time_serial_iter
 from .tools import none_iter
-from .tools import value_list_iter, associated_fill, calculate_expressions
+from .tools import value_list_iter, associated_fill, calculate_expressions, join_string
 
 __NORMAL_FUNCTIONS__ = {
     'fixed_value_iter': fixed_value_iter,
@@ -73,20 +74,53 @@ def write_calculate_expressions(column_rule: ColumnRule, rule: GenerateRule,
         try:
             # 取出当前行的列值
             value_dict = dict(((key, values[count]) for key, values in column_data.items()))
-            # 添加到计算值数据列表
+            # 添加计算值到数据列表
             data_list.append(calculate_expressions(expressions, value_dict))
         except Exception as e:
             log.error(e, exc_info=sys.exc_info())
+            return
         count += 1
     # 填入数据
     column_data[column_rule.column_name] = data_list
     log.info(f'calculate expressions {time.perf_counter() - t0}')
 
 
+def write_join_string(column_rule: ColumnRule, rule: GenerateRule,
+                      start_line: int, end_line: int, column_data: dict):
+    t0 = time.perf_counter()
+    param_list = DataParameter.objects.filter(column_rule_id__exact=column_rule.id)
+    # 转换参数为字典
+    param_dict = dict(((p.name, p.value) for p in param_list))
+    delimiter = param_dict['delimiter']
+    columns = param_dict['columns'].split(',')
+    log.info('function: ' + rule.function_name)
+    log.info('delimiter: ' + delimiter)
+    log.info('columns: ' + columns)
+    # 按顺序过滤获得需要取值的列
+    filtered_column_data = collections.OrderedDict()
+    for c in columns:
+        if c in column_data:
+            filtered_column_data[c] = column_data[c]
+    count = 0
+    data_list = []
+    # 过滤需要连接的列值
+    # 逐行执行
+    for _ in range(start_line, end_line):
+        # 取出当前行的所需列值
+        value_dict = dict(((key, values[count]) for key, values in filtered_column_data.items()))
+        # 添加连接值到数据列表
+        data_list.append(join_string(value_dict, delimiter))
+        count += 1
+    # 填入数据
+    column_data[column_rule.column_name] = data_list
+    log.info(f'joining string {time.perf_counter() - t0}')
+
+
 __ASSOCIATED_FUNCTION__ = {
     'value_list_iter': write_value_list,
     'associated_fill': write_associated_list,
-    'calculate_expressions': write_calculate_expressions
+    'calculate_expressions': write_calculate_expressions,
+    'join_string': write_join_string
 }
 
 

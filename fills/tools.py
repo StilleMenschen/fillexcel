@@ -27,7 +27,7 @@ def random_number_iter(start=1, stop=42, is_decimal=False, ndigits=2):
         start, stop = int(start), int(stop)
         func = functools.partial(random.randrange, int(start), int(stop))
     while True:
-        yield func()
+        yield str(func())
 
 
 def time_serial_iter(repeat=1):
@@ -53,7 +53,7 @@ def calculate_expressions(expressions, value_dict):
     if isinstance(value_dict, dict) and not len(value_dict):
         return None
     compiled_expressions = _replace_expressions_variable(expressions, value_dict)
-    return eval(compiled_expressions)
+    return str(eval(compiled_expressions))
 
 
 def associated_fill(key_map_list: list[tuple], value_dict: dict):
@@ -71,7 +71,7 @@ def _replace_expressions_variable(expressions, value_dict):
     def inner_data_get(match):
         val = value_dict.get(match.group(1), match.group(0))
         # 正则替换的数据类型必须是字符串
-        return str(val)
+        return val
 
     return pattern.sub(inner_data_get, expressions)
 
