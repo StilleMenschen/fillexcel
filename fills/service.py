@@ -149,6 +149,9 @@ def match_normal_iter(column_rule: ColumnRule, rule: GenerateRule):
 
 def fill_excel(fr: FillingRequirement):
     column_rule_list = ColumnRule.objects.filter(requirement_id__exact=fr.id)
+    if not len(column_rule_list):
+        log.warning('Not ColumnRule')
+        return
     # 按定义的顺序填充, 需要关联其它数据的放在后面处理, 先处理固定值的
     column_rule_list: list[ColumnRule] = sorted(column_rule_list, key=operator.attrgetter('rule.fill_order'))
     fill_data = {'filename': fr.original_filename, 'startLine': fr.start_line, 'data': {}}

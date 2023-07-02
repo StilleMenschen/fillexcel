@@ -6,17 +6,35 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Fills</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Fills</h1>
+<body class="container">
+<h1>Fills</h1>
 {% if filling_requirement_list %}
-    <ul>
-    {% for filling_requirement in filling_requirement_list %}
-        <li><a href="{% url 'fills:get_requirement' filling_requirement.id %}" target="_blank">{{ filling_requirement.username }}</a></li>
-    {% endfor %}
-    </ul>
+    <div class="list-group">
+        {% for fr in filling_requirement_list %}
+            <a class="list-group-item list-group-item-action"
+               href="{% url 'fills:generates' fr.id %}"
+               target="_blank">{{ fr.username }} - {{ fr.remark }} - {{ fr.original_filename }}</a>
+        {% endfor %}
+    </div>
 {% else %}
     <p>No filling requirement are available.</p>
 {% endif %}
+
+<div>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+<div class="pagination justify-content-end">
+    {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+    {% endif %}
+
+    {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+    {% endif %}
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/popper.js/2.11.7/umd/popper.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
