@@ -95,7 +95,7 @@ def write_join_string(column_rule: ColumnRule, rule: GenerateRule,
     columns = param_dict['columns'].split(',')
     log.info('function: ' + rule.function_name)
     log.info('delimiter: ' + delimiter)
-    log.info('columns: ' + columns)
+    log.info('columns: ' + str(columns))
     # 按顺序过滤获得需要取值的列
     filtered_column_data = collections.OrderedDict()
     for c in columns:

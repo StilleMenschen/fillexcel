@@ -32,7 +32,7 @@ def write_to_excel(data: dict):
     start_line = data['startLine']
     filename = data['filename']
     d: dict = data['data']
-    excel_app = xw.App(visible=True)
+    excel_app = xw.App(visible=False)
     book = excel_app.books.active
     sheet = book.sheets.active
     for column, data_list in d.items():
