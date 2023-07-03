@@ -30,16 +30,15 @@ log.addHandler(rotating_file_handler)
 def write_to_excel(data: dict):
     t0 = time.perf_counter()
     start_line = data['startLine']
-    filename = data['filename']
-    d: dict = data['data']
+    excel_data: dict = data['data']
     excel_app = xw.App(visible=False)
     book = excel_app.books.active
     sheet = book.sheets.active
-    for column, data_list in d.items():
-        sheet[f'{column}{start_line}'].value = [(v,) for v in data_list]
+    for column, data_list in excel_data.items():
         range_len = len(data_list)
+        sheet.range(f'{column}{start_line}').value = tuple((v,) for v in data_list)
         sheet.range(f'{column}{start_line}:{column}{start_line + range_len}').number_format = '@'
-    filename = str(time.time_ns()) + '-' + filename
+    filename = f"{time.time_ns()}-{data['filename']}"
     p = pathlib.Path(__file__).parent / filename
     book.save(path=p)
     book.close()

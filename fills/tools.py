@@ -56,7 +56,7 @@ def calculate_expressions(expressions, value_dict):
     return str(eval(compiled_expressions))
 
 
-def associated_fill(key_map_list: list[tuple], value_dict: dict):
+def associated_fill(key_map_list: tuple, value_dict: dict):
     for column, name in key_map_list:
         yield column, value_dict.get(name, None)
 

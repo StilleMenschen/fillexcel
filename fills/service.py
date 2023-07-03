@@ -31,7 +31,7 @@ def write_value_list(column_rule: ColumnRule, rule: GenerateRule,
     log.info('function: ' + rule.function_name)
     log.info('values: ' + data_value.item)
     column_range = range(start_line, end_line)
-    column_data[column_rule.column_name] = [val for _, val in zip(column_range, value_list_iter(values))]
+    column_data[column_rule.column_name] = tuple(val for _, val in zip(column_range, value_list_iter(values)))
 
 
 def write_associated_list(column_rule: ColumnRule, rule: GenerateRule,
@@ -48,7 +48,7 @@ def write_associated_list(column_rule: ColumnRule, rule: GenerateRule,
     # 数据集
     value_iter = value_list_iter((json.loads(v.item) for v in data_value))
     # 数据绑定
-    bind_list = [(v.column_name, v.data_name) for v in data_bind]
+    bind_list = tuple((v.column_name, v.data_name) for v in data_bind)
     # 初始化列的数组
     for col, _ in bind_list:
         column_data[col] = []
@@ -166,7 +166,7 @@ def fill_excel(fr: FillingRequirement):
         else:
             it = match_normal_iter(column_rule, column_rule.rule)
             column_range = range(start_line, end_line)
-            column_data[column_rule.column_name] = [val for _, val in zip(column_range, it)]
+            column_data[column_rule.column_name] = tuple(val for _, val in zip(column_range, it))
     # 异步处理写入数据
     result = write_to_excel.apply_async(args=(fill_data,))
     log.info(result.get())
