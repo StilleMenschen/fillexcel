@@ -168,5 +168,5 @@ def fill_excel(fr: FillingRequirement):
             column_range = range(start_line, end_line)
             column_data[column_rule.column_name] = [val for _, val in zip(column_range, it)]
     # 异步处理写入数据
-    result = write_to_excel.delay(fill_data)
+    result = write_to_excel.apply_async(args=(fill_data,))
     log.info(result.get())
