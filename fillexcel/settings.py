@@ -29,13 +29,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "fills.apps.FillsConfig",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "fills.apps.FillsConfig",
 ]
 
 MIDDLEWARE = [
@@ -153,7 +153,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',  # 滚动生成日志，切割
             'filename': LOG_DIR / 'django.log',  # 日志文件名
-            'maxBytes': 1024 * 1024 * 10,  # 单个日志文件最大为10M
+            'maxBytes': 1024 * 1024 * 8,  # 单个日志文件最大为8M
             'backupCount': 7,  # 日志备份文件最大数量
             'formatter': 'simple',  # 简单格式
             'encoding': 'utf-8',  # 放置中文乱码
