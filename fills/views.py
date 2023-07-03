@@ -31,17 +31,17 @@ def generates(request, req_id: int):
 def get_paging_requirement_list(request):
     all_fr = FillingRequirement.objects.all().values()
 
-    num = request.GET.get('num', default=8)
-    paginator = Paginator(all_fr, per_page=num)
+    size = request.GET.get('size', default=8)
+    paginator = Paginator(all_fr, per_page=size)
     # 获取请求参数中的页码
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page', default=1)
 
     # 获取当前页的记录对象
     page_obj = paginator.get_page(page_number)
 
     # 构建返回的JSON数据
     response_data = {
-        'data': list(page_obj),  # 将查询数据转为列表
+        'data': tuple(page_obj),  # 将查询数据转为列表
         'page': {
             'number': page_obj.number,  # 当前页码
             'totalPage': paginator.num_pages,  # 总页数

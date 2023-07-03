@@ -46,8 +46,8 @@ def write_to_excel(data_for_fill: dict):
         sheet.range(f'{column}{start_line}').value = tuple((v,) for v in data_list)
         sheet.range(f'{column}{start_line}:{column}{start_line + range_len}').number_format = '@'
     filename = f"{time.time_ns()}-{data_for_fill['filename']}"
-    p = pathlib.Path(__file__).parent / filename
-    book.save(path=p)
+    save_path = pathlib.Path(__file__).parent / filename
+    book.save(path=save_path)
     book.close()
     excel_app.quit()
     log.info(f'elapsed time {time.perf_counter() - t0}')
