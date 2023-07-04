@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views import generic
 from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.cache import cache_page
 from rest_framework import permissions
 from rest_framework import viewsets
 
@@ -73,6 +74,7 @@ def base_list(obj, page: int = 1, size: int = 8):
 
 
 @require_GET
+@cache_page(60 * 60 * 6)
 def get_requirement_list(request):
     all_fr = FillingRequirement.objects.values()
 
