@@ -4,6 +4,12 @@ from django.db import models
 
 from .utils import SnowFlake
 
+DATA_TYPE = (
+    ('string', '字符串'),
+    ('number', '数值'),
+    ('boolean', '布尔值')
+)
+
 
 def gen_id():
     return SnowFlake(0, 0).next_id()
@@ -53,7 +59,7 @@ class GenerateRuleParameter(IdDateTimeBase):
     rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
-    data_type = models.CharField(max_length=255)
+    data_type = models.CharField(choices=DATA_TYPE, max_length=255)
     description = models.TextField()
     required = models.BooleanField()
     default_value = models.CharField(blank=True, max_length=255)
@@ -76,7 +82,7 @@ class DataSetDefine(IdDateTimeBase):
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
-    data_type = models.CharField(max_length=255)
+    data_type = models.CharField(choices=DATA_TYPE, max_length=255)
 
     def __str__(self) -> str:
         return f'<[{self.name}] {self.data_type}>'
@@ -110,7 +116,7 @@ class ColumnRule(IdDateTimeBase):
     rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE)
 
     column_name = models.CharField(max_length=255)
-    column_type = models.CharField(max_length=128)
+    column_type = models.CharField(choices=DATA_TYPE, max_length=128)
     associated_of = models.BooleanField(default=False)
 
     def __str__(self):
@@ -124,7 +130,7 @@ class DataParameter(IdDateTimeBase):
     param_rule = models.ForeignKey(GenerateRuleParameter, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
-    value = models.CharField(blank=True, default='', max_length=255)
+    value = models.CharField(blank=True, default=str, max_length=255)
     expressions = models.CharField(blank=True, max_length=512)
     data_set_id = models.BigIntegerField(null=True, blank=True)
 
