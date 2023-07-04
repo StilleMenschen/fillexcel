@@ -1,15 +1,22 @@
 import time
+import typing
 
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
+from django.utils.decorators import method_decorator
 from django.views import generic
-from django.views.decorators.http import require_GET, require_http_methods
 from django.views.decorators.cache import cache_page
+from django.views.decorators.http import require_GET, require_http_methods
 from rest_framework import permissions
 from rest_framework import viewsets
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.serializers import Serializer
 
 from .models import FillingRequirement, GenerateRule
+from .serializers import FillingRequirementSerializer
 from .serializers import UserSerializer, GroupSerializer
 from .service import fill_excel
 
@@ -40,6 +47,41 @@ class IndexView(generic.ListView):
     model = FillingRequirement
     template_name = 'fills/index.html'
     context_object_name = 'filling_requirement_list'
+
+
+class PagingViewMixin:
+
+    @staticmethod
+    def paging(obj, query_params: QueryDict, serializer: typing.Type[Serializer]):
+        # 获得查询条件中的翻页参数
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        # 生成页码记录
+        paginator = Paginator(obj, per_page=size)
+        # 获取当前页的记录对象
+        page_obj = paginator.get_page(page)
+        # 序列化
+        serializer = serializer(page_obj, many=True)
+        # 构建返回的JSON数据
+        response_data = {
+            'data': serializer.data,  # 将查询数据转为列表
+            'page': {
+                'number': page_obj.number,  # 当前页码
+                'totalPage': paginator.num_pages,  # 总页数
+                'total': paginator.count,  # 总数
+                'hasPrevious': page_obj.has_previous(),  # 是否有上一页
+                'hasNext': page_obj.has_next(),  # 是否有下一页
+            }
+        }
+        # 返回JSON响应
+        return Response(response_data)
+
+
+class FillingRequirementView(APIView, PagingViewMixin):
+    @method_decorator(cache_page(60 * 60 * 6))
+    def get(self, request: Request):
+        requirement = FillingRequirement.objects.values()
+        return self.paging(requirement, request.query_params, FillingRequirementSerializer)
 
 
 @require_http_methods(['GET', 'POST'])

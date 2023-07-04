@@ -1,6 +1,7 @@
 import reprlib
 
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 
 from .utils import SnowFlake
 
@@ -33,9 +34,14 @@ class FillingRequirement(IdDateTimeBase):
     username = models.CharField(max_length=255)
     remark = models.TextField(blank=True)
     file_id = models.CharField(max_length=255)
-    original_filename = models.CharField(max_length=255)
-    start_line = models.PositiveIntegerField()
-    line_number = models.PositiveIntegerField()
+    original_filename = models.CharField(max_length=255, validators=(
+        RegexValidator(regex=r'.xlsx$', message='必须为.xlsx格式的excel文件'),))
+    start_line = models.PositiveIntegerField(validators=(
+        MinValueValidator(1, message='起始行在1到42之间'),
+        MaxValueValidator(42, message='起始行在1到42之间')))
+    line_number = models.PositiveIntegerField(validators=(
+        MinValueValidator(1, message='支持填充行数在1到200之间'),
+        MaxValueValidator(200, message='支持填充行数在1到200之间')))
 
     class Meta:
         ordering = ['-id']
