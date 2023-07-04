@@ -1,7 +1,7 @@
 import reprlib
 
-from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.db import models
 
 from .utils import SnowFlake
 

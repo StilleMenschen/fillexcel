@@ -8,12 +8,11 @@ from django.utils.decorators import method_decorator
 from django.views import generic
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_GET, require_http_methods
-from rest_framework import permissions
-from rest_framework import viewsets
+from rest_framework import permissions, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.serializers import Serializer
+from rest_framework.views import APIView
 
 from .models import FillingRequirement, GenerateRule
 from .serializers import FillingRequirementSerializer
