@@ -31,6 +31,9 @@ class FillingRequirement(IdDateTimeBase):
     start_line = models.PositiveIntegerField()
     line_number = models.PositiveIntegerField()
 
+    class Meta:
+        ordering = ['-id']
+
     def __str__(self):
         return f"<[{self.original_filename}] {self.start_line} of {self.line_number} line>"
 

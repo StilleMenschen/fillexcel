@@ -4,3 +4,4 @@ xlwings==0.29.1
 celery==5.1.2
 eventlet==0.33.1
 redis==3.5.3
+djangorestframework==3.14.0

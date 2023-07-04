@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "fills.apps.FillsConfig",
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -61,10 +62,10 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
+                'django.contrib.messages.context_processors.messages'
+            ]
+        }
+    }
 ]
 
 WSGI_APPLICATION = 'fillexcel.wsgi.application'
@@ -101,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    }
 ]
 
 # Internationalization
@@ -156,14 +157,34 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 8,  # 单个日志文件最大为8M
             'backupCount': 7,  # 日志备份文件最大数量
             'formatter': 'simple',  # 简单格式
-            'encoding': 'utf-8',  # 放置中文乱码
+            'encoding': 'utf-8'  # 防止中文乱码
+        },
+        'sql': {  # django 执行的sql记录
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',  # 滚动生成日志，切割
+            'filename': LOG_DIR / 'django-sql.log',  # 日志文件名
+            'maxBytes': 1024 * 1024 * 8,  # 单个日志文件最大为8M
+            'backupCount': 7,  # 日志备份文件最大数量
+            'formatter': 'simple',  # 简单格式
+            'encoding': 'utf-8'  # 防止中文乱码
         },
         'console': {  # 打印到终端console
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
+            'formatter': 'verbose'
+        }
     },
-    'root': {'level': 'INFO', 'handlers': ['console', 'file']},
-    'loggers': {}
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console', 'sql'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
+    },
+    'root': {'level': 'INFO', 'handlers': ['console', 'file']}
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 8
 }

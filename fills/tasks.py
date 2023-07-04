@@ -16,13 +16,10 @@ def init_logger():
     logger.setLevel(logging.DEBUG)
     log_path = pathlib.Path(__file__).parent.parent / 'var' / 'logs'
     log_format = logging.Formatter(fmt='%(asctime)s %(levelname)s %(name)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    file_handler = logging.FileHandler(filename=str(log_path / 'example.log'))
-    file_handler.setFormatter(log_format)
 
-    rotating_file_handler = TimedRotatingFileHandler(filename=str(log_path / 'rotating-example.log'), when='midnight')
+    rotating_file_handler = TimedRotatingFileHandler(filename=str(log_path / 'celery-task.log'), when='midnight')
     rotating_file_handler.setFormatter(log_format)
 
-    logger.addHandler(file_handler)
     logger.addHandler(rotating_file_handler)
 
     return logger
