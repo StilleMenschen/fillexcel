@@ -1,0 +1,25 @@
+@baseUrl = http://127.0.0.1:4200
+
+###
+GET {{baseUrl}}/fills/generateRuleParameter
+?rule=4880372080640
+&size=2 HTTP/1.1
+
+###
+GET {{baseUrl}}/fills/generateRule?page=1&size=4 HTTP/1.1
+
+###
+GET {{baseUrl}}/fills/requirement
+?format=json
+&size=4 HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg4NTg2ODA1LCJpYXQiOjE2ODg1NzI0MDUsImp0aSI6IjVlN2JhNzEyNDRjYjRhMmNiMDk3YWFhNDk5YmVhY2IzIiwidXNlcl9pZCI6Mn0.dZ--0b8Zv28OMM7PSM7NloNnagC5NeoaltwUdEH58Ak
+
+###
+POST {{baseUrl}}/api/token HTTP/1.1
+Content-Type: application/json
+
+{"username": "L", "password": "4321dcba"}
+
+###
+GET {{baseUrl}}/users/2/ HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg4NTcxMzI5LCJpYXQiOjE2ODg1NzEwMjksImp0aSI6IjMzMDNiMjRlYTJhODRkMTliNTUzZDU4NTEzY2YxZDAzIiwidXNlcl9pZCI6Mn0.HfsbKatnjmqvGVRGMax3N-3Bh50I8wRF4MQn8mSXQAg
