@@ -77,9 +77,11 @@ class PagingViewMixin:
 
 
 class FillingRequirementView(APIView, PagingViewMixin):
+    permission_classes = (permissions.IsAuthenticated,)
+
     @method_decorator(cache_page(60 * 60 * 6))
     def get(self, request: Request):
-        requirement = FillingRequirement.objects.values()
+        requirement = FillingRequirement.objects.order_by('-id').values()
         return self.paging(requirement, request.query_params, FillingRequirementSerializer)
 
 
@@ -117,7 +119,7 @@ def base_list(obj, page: int = 1, size: int = 8):
 @require_GET
 @cache_page(60 * 60 * 6)
 def get_requirement_list(request):
-    all_fr = FillingRequirement.objects.values()
+    all_fr = FillingRequirement.objects.order_by('-id').values()
 
     page = request.GET.get('page', default=1)
     size = request.GET.get('size', default=8)

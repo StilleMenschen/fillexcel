@@ -43,9 +43,6 @@ class FillingRequirement(IdDateTimeBase):
         MinValueValidator(1, message='支持填充行数在1到200之间'),
         MaxValueValidator(200, message='支持填充行数在1到200之间')))
 
-    class Meta:
-        ordering = ['-id']
-
     def __str__(self):
         return f"<[{self.original_filename}] {self.start_line} of {self.line_number} line>"
 

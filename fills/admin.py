@@ -31,19 +31,19 @@ class GenerateRuleParameterAdmin(admin.ModelAdmin):
 
 
 class DataSetAdmin(admin.ModelAdmin):
-    list_display = ('id', 'description', 'data_type')
+    list_display = ('id', 'description', 'data_type', 'created_at', 'updated_at')
 
 
 class DataSetDefineAdmin(admin.ModelAdmin):
-    list_display = ('id', 'data_set_id', 'name', 'data_type')
+    list_display = ('id', 'data_set_id', 'name', 'data_type', 'created_at', 'updated_at')
 
 
 class DataSetValueAdmin(admin.ModelAdmin):
-    list_display = ('id', 'data_set_id', 'item')
+    list_display = ('id', 'data_set_id', 'item', 'created_at', 'updated_at')
 
 
 class DataSetBindAdmin(admin.ModelAdmin):
-    list_display = ('id', 'data_set_id', 'column_name', 'data_name')
+    list_display = ('id', 'data_set_id', 'column_name', 'data_name', 'created_at', 'updated_at')
 
 
 admin.site.register(FillingRequirement, FillingRequirementAdmin)
