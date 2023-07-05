@@ -10,7 +10,7 @@ def fixed_value_iter(value):
 
 
 def value_list_iter(values):
-    values = list(values)
+    values = tuple(values)
     return itertools.cycle(values)
 
 

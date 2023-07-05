@@ -11,6 +11,11 @@ DATA_TYPE = (
     ('boolean', '布尔值')
 )
 
+DEFINE_DATA_TYPE = (
+    ('string', '字符串'),
+    ('dict', '字典')
+)
+
 
 def gen_id():
     return SnowFlake(0, 0).next_id()
@@ -74,10 +79,9 @@ class GenerateRuleParameter(IdDateTimeBase):
 
 class DataSet(IdDateTimeBase):
     description = models.TextField()
-    data_type = models.CharField(max_length=255)
 
     def __str__(self) -> str:
-        return f'<[{self.description}] {self.data_type}>'
+        return f'<[{self.__class__.__name__}] {self.description}>'
 
 
 class DataSetDefine(IdDateTimeBase):
@@ -96,6 +100,7 @@ class DataSetValue(IdDateTimeBase):
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE)
 
     item = models.TextField()
+    data_type = models.CharField(choices=DEFINE_DATA_TYPE, max_length=255)
 
     def __str__(self) -> str:
         return f'<[{self.__class__.__name__}] {reprlib.repr(self.item)}>'

@@ -25,11 +25,11 @@ log = logging.getLogger(__name__)
 def write_value_list(column_rule: ColumnRule, rule: GenerateRule,
                      start_line: int, end_line: int, column_data: dict):
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
-    data_value = DataSetValue.objects.get(data_set__exact=param.data_set_id)
-    values = json.loads(data_value.item)
+    data_value_list = DataSetValue.objects.filter(data_set__exact=param.data_set_id)
+    values = tuple(d.item for d in data_value_list)
     log.info('column: ' + column_rule.column_name)
     log.info('function: ' + rule.function_name)
-    log.info('values: ' + data_value.item)
+    log.info('values: ' + str(values))
     column_range = range(start_line, end_line)
     column_data[column_rule.column_name] = tuple(val for _, val in zip(column_range, value_list_iter(values)))
 
