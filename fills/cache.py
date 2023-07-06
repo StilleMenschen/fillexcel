@@ -9,7 +9,13 @@ class CacheManager:
 
     @property
     def prefix(self):
-        return self.__getattribute__('prefix')
+        """
+        在继承类中查找 cache_prefix 作为缓存 key 的前缀
+        """
+        try:
+            return self.__getattribute__('cache_prefix')
+        except AttributeError:
+            return 'none'
 
     def get_cache(self, pk: int | str, query):
         """

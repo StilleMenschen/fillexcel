@@ -101,7 +101,7 @@ class FillingRequirementDetail(APIView, CacheManager):
     处理单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    prefix = 'FillingRequirementDetail'
+    cache_prefix = 'FillingRequirementDetail'
 
     def get_object(self, pk):
         try:
