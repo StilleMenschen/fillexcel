@@ -1,27 +1,29 @@
+import logging
 import time
 import typing
 
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator
-from django.http import JsonResponse, QueryDict
-from django.utils.decorators import method_decorator
+from django.http import JsonResponse, QueryDict, Http404
 from django.views import generic
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_GET, require_http_methods
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
+from .cache import CacheManager
 from .models import FillingRequirement, GenerateRule
 from .serializers import FillingRequirementSerializer
 from .serializers import UserSerializer, GroupSerializer
 from .service import fill_excel
 
+log = logging.getLogger(__name__)
+
 
 # Create your views here.
-
 class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
@@ -76,13 +78,62 @@ class PagingViewMixin:
         return Response(response_data)
 
 
-class FillingRequirementView(APIView, PagingViewMixin):
+class FillingRequirementList(APIView, PagingViewMixin):
+    """
+    处理查询所有/新增
+    """
     permission_classes = (permissions.IsAuthenticated,)
 
-    @method_decorator(cache_page(60 * 60 * 6))
-    def get(self, request: Request):
+    def get(self, request: Request, format=None):
         requirement = FillingRequirement.objects.order_by('-id').values()
         return self.paging(requirement, request.query_params, FillingRequirementSerializer)
+
+    def post(self, request: Request, format=None):
+        serializer = FillingRequirementSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FillingRequirementDetail(APIView, CacheManager):
+    """
+    处理单个查询/修改/删除
+    """
+    permission_classes = (permissions.IsAuthenticated,)
+    prefix = 'FillingRequirementDetail'
+
+    def get_object(self, pk):
+        try:
+            return FillingRequirement.objects.get(pk=pk)
+        except FillingRequirement.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+
+        def query():
+            requirement = self.get_object(pk)
+            serializer = FillingRequirementSerializer(requirement)
+            return serializer.data
+
+        data = self.get_cache(pk, query)
+
+        return Response(data)
+
+    def put(self, request, pk):
+        self.invalid_cache(pk)
+        requirement = self.get_object(pk)
+        serializer = FillingRequirementSerializer(requirement, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        self.invalid_cache(pk)
+        requirement = self.get_object(pk)
+        requirement.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @require_http_methods(['GET', 'POST'])
