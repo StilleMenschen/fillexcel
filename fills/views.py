@@ -103,7 +103,8 @@ class FillingRequirementDetail(APIView, CacheManager):
     permission_classes = (permissions.IsAuthenticated,)
     cache_prefix = 'FillingRequirementDetail'
 
-    def get_object(self, pk):
+    @staticmethod
+    def get_object(pk):
         try:
             return FillingRequirement.objects.get(pk=pk)
         except FillingRequirement.DoesNotExist:
