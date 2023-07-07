@@ -6,16 +6,15 @@ log = logging.getLogger(__name__)
 
 
 class CacheManager:
+    # 缓存前缀
+    cache_prefix = 'none'
 
     @property
     def prefix(self):
         """
         在继承类中查找 cache_prefix 作为缓存 key 的前缀
         """
-        try:
-            return self.__getattribute__('cache_prefix')
-        except AttributeError:
-            return 'none'
+        return getattr(self, 'cache_prefix')
 
     def get_cache(self, pk: int | str, query):
         """

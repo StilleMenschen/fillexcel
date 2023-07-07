@@ -4,7 +4,7 @@ import typing
 
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator
-from django.http import JsonResponse, QueryDict, Http404
+from django.http import JsonResponse, QueryDict
 from django.views import generic
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_GET, require_http_methods
@@ -122,18 +122,18 @@ class FillingRequirementDetail(APIView, CacheManager):
         return Response(data)
 
     def put(self, request, pk):
-        self.invalid_cache(pk)
         requirement = self.get_object(pk)
         serializer = FillingRequirementSerializer(requirement, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            self.invalid_cache(pk)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        self.invalid_cache(pk)
         requirement = self.get_object(pk)
         requirement.delete()
+        self.invalid_cache(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
