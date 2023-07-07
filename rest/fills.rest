@@ -63,5 +63,30 @@ GET {{baseUrl}}/fills/columnRule
 Authorization: Bearer {{token}}
 
 ###
+GET {{baseUrl}}/fills/dataParameter
+?size=4 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/fills/dataSet
+?size=4 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/fills/dataSetDefine
+?size=4 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/fills/dataSetValue
+?size=4 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/fills/dataSetBind
+?size=4 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
 GET {{baseUrl}}/users/2/ HTTP/1.1
 Authorization: Bearer {{token}}

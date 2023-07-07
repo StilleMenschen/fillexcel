@@ -63,7 +63,6 @@ class GenerateRule(IdDateTimeBase):
 
 
 class GenerateRuleParameter(IdDateTimeBase):
-    # 规则
     rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE, verbose_name='关联规则')
 
     name = models.CharField('参数名', max_length=255)
@@ -85,7 +84,6 @@ class DataSet(IdDateTimeBase):
 
 
 class DataSetDefine(IdDateTimeBase):
-    # 数据集主表
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE, verbose_name='关联数据集')
 
     name = models.CharField('属性名', max_length=255)
@@ -96,7 +94,6 @@ class DataSetDefine(IdDateTimeBase):
 
 
 class DataSetValue(IdDateTimeBase):
-    # 数据集主表
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE, verbose_name='关联数据集')
 
     item = models.TextField('数据项')
@@ -107,7 +104,6 @@ class DataSetValue(IdDateTimeBase):
 
 
 class DataSetBind(IdDateTimeBase):
-    # 数据集主表
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE, verbose_name='关联数据集')
 
     column_name = models.CharField('单元格列名', max_length=8)
@@ -118,10 +114,8 @@ class DataSetBind(IdDateTimeBase):
 
 
 class ColumnRule(IdDateTimeBase):
-    # 填充要求
     requirement = models.ForeignKey(FillingRequirement, on_delete=models.CASCADE, verbose_name='关联填充要求')
-    # 规则
-    rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE, verbose_name='关联规则')
+    rule = models.OneToOneField(GenerateRule, on_delete=models.CASCADE, verbose_name='关联规则')
 
     column_name = models.CharField('单元格列', max_length=8, validators=(MaxLengthValidator(3, message='不要搞那么后面的列'),))
     column_type = models.CharField('单元格数据类型', choices=DATA_TYPE, max_length=64)
@@ -132,10 +126,8 @@ class ColumnRule(IdDateTimeBase):
 
 
 class DataParameter(IdDateTimeBase):
-    # 列规则
     column_rule = models.ForeignKey(ColumnRule, on_delete=models.CASCADE, verbose_name='关联列规则')
-    # 规则
-    param_rule = models.ForeignKey(GenerateRuleParameter, on_delete=models.CASCADE, verbose_name='关联参数')
+    param_rule = models.OneToOneField(GenerateRuleParameter, on_delete=models.CASCADE, verbose_name='关联参数')
 
     name = models.CharField('参数名', max_length=255)
     value = models.CharField('参数值', blank=True, default=str, max_length=255)
