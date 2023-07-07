@@ -108,7 +108,7 @@ class FillingRequirementDetail(APIView, CacheManager):
         try:
             return FillingRequirement.objects.get(pk=pk)
         except FillingRequirement.DoesNotExist:
-            raise Http404
+            raise ValueError('未查询到对应数据')
 
     def get(self, request, pk):
 
