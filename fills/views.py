@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse, QueryDict
 from django.views import generic
 from django.views.decorators.cache import cache_page
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET
 from rest_framework import permissions, viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -15,8 +15,8 @@ from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
 from .cache import CacheManager
-from .models import FillingRequirement, GenerateRule
-from .serializers import FillingRequirementSerializer
+from .models import FillingRequirement, GenerateRule, ColumnRule
+from .serializers import FillingRequirementSerializer, ColumnRuleSerializer
 from .serializers import UserSerializer, GroupSerializer
 from .service import fill_excel
 
@@ -80,7 +80,7 @@ class PagingViewMixin:
 
 class FillingRequirementList(APIView, PagingViewMixin):
     """
-    处理查询所有/新增
+    生成要求: 查询所有/新增
     """
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -98,7 +98,7 @@ class FillingRequirementList(APIView, PagingViewMixin):
 
 class FillingRequirementDetail(APIView, CacheManager):
     """
-    处理单个查询/修改/删除
+    生成要求: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
     cache_prefix = 'FillingRequirementDetail'
@@ -137,7 +137,66 @@ class FillingRequirementDetail(APIView, CacheManager):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@require_http_methods(['GET', 'POST'])
+class ColumnRuleList(APIView, PagingViewMixin):
+    """
+    处理查询所有/新增
+    """
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request: Request, format=None):
+        column_rule = ColumnRule.objects.order_by('-id').values()
+        return self.paging(column_rule, request.query_params, ColumnRuleSerializer)
+
+    def post(self, request: Request, format=None):
+        serializer = ColumnRuleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ColumnRuleDetail(APIView, CacheManager):
+    """
+    生成要求: 单个查询/修改/删除
+    """
+    permission_classes = (permissions.IsAuthenticated,)
+    cache_prefix = 'ColumnRuleDetail'
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            return ColumnRule.objects.get(pk=pk)
+        except ColumnRule.DoesNotExist:
+            raise ValueError('未查询到对应数据')
+
+    def get(self, request, pk):
+
+        def query():
+            column_rule = self.get_object(pk)
+            serializer = ColumnRuleSerializer(column_rule)
+            return serializer.data
+
+        data = self.get_cache(pk, query)
+
+        return Response(data)
+
+    def put(self, request, pk):
+        column_rule = self.get_object(pk)
+        serializer = ColumnRuleSerializer(column_rule, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            self.invalid_cache(pk)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        column_rule = self.get_object(pk)
+        column_rule.delete()
+        self.invalid_cache(pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@require_GET
 def generates(request, req_id: int):
     t0 = time.perf_counter()
     fr = FillingRequirement.objects.get(pk=req_id)
@@ -169,16 +228,7 @@ def base_list(obj, page: int = 1, size: int = 8):
 
 
 @require_GET
-@cache_page(60 * 60 * 6)
-def get_requirement_list(request):
-    all_fr = FillingRequirement.objects.order_by('-id').values()
-
-    page = request.GET.get('page', default=1)
-    size = request.GET.get('size', default=8)
-    return base_list(all_fr, page, size)
-
-
-@require_GET
+@cache_page(60 * 60 * 2)
 def get_generate_rule_list(request):
     all_gr = GenerateRule.objects.order_by('id').values()
 
@@ -188,6 +238,7 @@ def get_generate_rule_list(request):
 
 
 @require_GET
+@cache_page(60 * 60 * 2)
 def get_generate_rule_parameter_list(request):
     """
     根据生成规则ID查询规则需要传的参数

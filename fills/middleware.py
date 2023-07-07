@@ -17,3 +17,14 @@ class ErrorHandlerMiddleware(MiddlewareMixin):
         }
         log.error(error_data)
         return JsonResponse(error_data, status=500)
+
+
+class ModifyServerHeaderMiddleware(MiddlewareMixin):
+    @staticmethod
+    def process_response(_, response):
+        if hasattr(response, 'headers'):
+            try:
+                response.headers.__setitem__('Server', 'WSGIServer')
+            finally:
+                pass
+        return response
