@@ -10,44 +10,14 @@ Content-Type: application/json
 @token={{login.response.body.access}}
 
 ###
-GET {{baseUrl}}/fills/generateRule?page=1&size=4 HTTP/1.1
+GET {{baseUrl}}/fills/generateRule
+?page=1
+&size=4 HTTP/1.1
 
 ###
 GET {{baseUrl}}/fills/generateRuleParameter
 ?rule=4880372080640
 &size=8 HTTP/1.1
-
-
-
-###
-GET {{baseUrl}}/fills/columnRule
-?size=4 HTTP/1.1
-Authorization: Bearer {{token}}
-
-###
-GET {{baseUrl}}/fills/dataParameter
-?size=4 HTTP/1.1
-Authorization: Bearer {{token}}
-
-###
-GET {{baseUrl}}/fills/dataSet
-?size=4 HTTP/1.1
-Authorization: Bearer {{token}}
-
-###
-GET {{baseUrl}}/fills/dataSetDefine
-?size=4 HTTP/1.1
-Authorization: Bearer {{token}}
-
-###
-GET {{baseUrl}}/fills/dataSetValue
-?size=4 HTTP/1.1
-Authorization: Bearer {{token}}
-
-###
-GET {{baseUrl}}/fills/dataSetBind
-?size=4 HTTP/1.1
-Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/users/2/ HTTP/1.1

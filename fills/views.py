@@ -147,12 +147,10 @@ class ColumnRuleList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         requirement_id = request.query_params.get('requirement_id', None)
+        column_rule = ColumnRule.objects.get_queryset()
         if requirement_id:
-            column_rule = ColumnRule.objects.filter(
-                requirement_id__exact=int(requirement_id)
-            ).order_by('-id').values()
-        else:
-            column_rule = ColumnRule.objects.order_by('-id').values()
+            column_rule = column_rule.filter(requirement_id__exact=int(requirement_id))
+        column_rule = column_rule.order_by('-id').values()
         return self.paging(column_rule, request.query_params, ColumnRuleSerializer)
 
     def post(self, request: Request, format=None):
@@ -211,7 +209,11 @@ class DataParameterList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        data_parameter = DataParameter.objects.order_by('-id').values()
+        column_rule_id = request.query_params.get('column_rule_id', None)
+        data_parameter = DataParameter.objects.get_queryset()
+        if column_rule_id:
+            data_parameter = data_parameter.filter(column_rule_id__exact=int(column_rule_id))
+        data_parameter = data_parameter.order_by('-id').values()
         return self.paging(data_parameter, request.query_params, DataParameterSerializer)
 
     def post(self, request: Request, format=None):
@@ -329,7 +331,11 @@ class DataSetDefineList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        data_set_define = DataSetDefine.objects.order_by('-id').values()
+        data_set_id = request.query_params.get('data_set_id', None)
+        data_set_define = DataSetDefine.objects.get_queryset()
+        if data_set_id:
+            data_set_define = data_set_define.filter(data_set_id__exact=int(data_set_id))
+        data_set_define = data_set_define.order_by('-id').values()
         return self.paging(data_set_define, request.query_params, DataSetDefineSerializer)
 
     def post(self, request: Request, format=None):
@@ -388,7 +394,11 @@ class DataSetValueList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        data_set_value = DataSetValue.objects.order_by('-id').values()
+        data_set_id = request.query_params.get('data_set_id', None)
+        data_set_value = DataSetValue.objects.get_queryset()
+        if data_set_id:
+            data_set_value = data_set_value.filter(data_set_id__exact=int(data_set_id))
+        data_set_value = data_set_value.order_by('-id').values()
         return self.paging(data_set_value, request.query_params, DataSetValueSerializer)
 
     def post(self, request: Request, format=None):
@@ -447,7 +457,11 @@ class DataSetBindList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        data_set_bind = DataSetBind.objects.order_by('-id').values()
+        data_set_id = request.query_params.get('data_set_id', None)
+        data_set_bind = DataSetBind.objects.get_queryset()
+        if data_set_id:
+            data_set_bind = data_set_bind.filter(data_set_id__exact=int(data_set_id))
+        data_set_bind = data_set_bind.order_by('-id').values()
         return self.paging(data_set_bind, request.query_params, DataSetBindSerializer)
 
     def post(self, request: Request, format=None):

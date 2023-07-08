@@ -1,6 +1,6 @@
 import reprlib
 
-from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator, MaxLengthValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.db import models
 
 from .utils import SnowFlake
@@ -109,8 +109,7 @@ class DataSetDefine(IdDateTimeBase):
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE, verbose_name='关联数据集')
 
     name = models.CharField('属性名', max_length=255, validators=(
-        RegexValidator(regex=r'^[a-zA-Z]+$', message='属性命名只能为大小写英文字母'),
-        MaxLengthValidator(255, message='属性名称不超过254个字符')))
+        RegexValidator(regex=r'^[a-zA-Z]+$', message='属性命名只能为大小写英文字母'),))
     data_type = models.CharField('数据类型', choices=DATA_TYPE, max_length=255)
 
     class Meta:

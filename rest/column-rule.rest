@@ -12,7 +12,7 @@ Content-Type: application/json
 ###
 GET {{baseUrl}}/fills/columnRule
 ?requirement_id=
-&size=4 HTTP/1.1
+&size=8 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
@@ -27,3 +27,9 @@ Authorization: Bearer {{token}}
     "column_type": "string",
     "associated_of": false
 }
+
+###
+GET {{baseUrl}}/fills/dataParameter
+?column_rule_id=
+&size=8 HTTP/1.1
+Authorization: Bearer {{token}}
