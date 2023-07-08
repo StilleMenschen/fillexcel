@@ -94,6 +94,7 @@ class GenerateRuleParameter(IdDateTimeBase):
 class DataSet(IdDateTimeBase):
     username = models.CharField('用户名', max_length=255)
     description = models.TextField('描述')
+    data_type = models.CharField('数据类型（字典或字符串）', choices=DEFINE_DATA_TYPE, max_length=255)
 
     class Meta:
         db_table = 'data_set'
@@ -107,7 +108,9 @@ class DataSet(IdDateTimeBase):
 class DataSetDefine(IdDateTimeBase):
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE, verbose_name='关联数据集')
 
-    name = models.CharField('属性名', max_length=255)
+    name = models.CharField('属性名', max_length=255, validators=(
+        RegexValidator(regex=r'^[a-zA-Z]+$', message='属性命名只能为大小写英文字母'),
+        MaxLengthValidator(255, message='属性名称不超过254个字符')))
     data_type = models.CharField('数据类型', choices=DATA_TYPE, max_length=255)
 
     class Meta:
@@ -137,7 +140,7 @@ class DataSetValue(IdDateTimeBase):
 class DataSetBind(IdDateTimeBase):
     data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE, verbose_name='关联数据集')
 
-    column_name = models.CharField('单元格列名', max_length=8)
+    column_name = models.CharField('单元格列名', max_length=3)
     data_name = models.CharField('关联属性名', max_length=255)
 
     class Meta:
@@ -153,8 +156,8 @@ class ColumnRule(IdDateTimeBase):
     requirement = models.ForeignKey(FillingRequirement, on_delete=models.CASCADE, verbose_name='关联填充要求')
     rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE, verbose_name='关联规则')
 
-    column_name = models.CharField('单元格列', max_length=8,
-                                   validators=(MaxLengthValidator(3, message='不要搞那么后面的列'),))
+    column_name = models.CharField('单元格列', max_length=3, validators=(
+        RegexValidator(regex=r'^[A-Z]+$', message='单元格名称必须是大写英文字母'),))
     column_type = models.CharField('单元格数据类型', choices=DATA_TYPE, max_length=64)
     associated_of = models.BooleanField('是否需要外部数据集', default=False)
 
@@ -172,8 +175,7 @@ class DataParameter(IdDateTimeBase):
     param_rule = models.ForeignKey(GenerateRuleParameter, on_delete=models.CASCADE, verbose_name='关联参数')
 
     name = models.CharField('参数名', max_length=255)
-    value = models.CharField('参数值', blank=True, default=str, max_length=255)
-    expressions = models.CharField('计算表达式', blank=True, max_length=512)
+    value = models.CharField('参数值', blank=True, default=str, max_length=512)
     data_set_id = models.BigIntegerField('关联数据集', null=True, blank=True)
 
     class Meta:

@@ -146,7 +146,13 @@ class ColumnRuleList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        column_rule = ColumnRule.objects.order_by('-id').values()
+        requirement_id = request.query_params.get('requirement_id', None)
+        if requirement_id:
+            column_rule = ColumnRule.objects.filter(
+                requirement_id__exact=int(requirement_id)
+            ).order_by('-id').values()
+        else:
+            column_rule = ColumnRule.objects.order_by('-id').values()
         return self.paging(column_rule, request.query_params, ColumnRuleSerializer)
 
     def post(self, request: Request, format=None):

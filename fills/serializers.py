@@ -91,17 +91,17 @@ class DataParameterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DataParameter
-        fields = ('id', 'column_rule_id', 'param_rule_id', 'name', 'value', 'expressions', 'data_set_id', 'created_at',
-                  'updated_at')
+        fields = ('id', 'column_rule_id', 'param_rule_id', 'name', 'value', 'data_set_id', 'created_at', 'updated_at')
 
 
 class DataSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataSet
-        fields = ('id', 'username', 'description', 'created_at', 'updated_at')
+        fields = ('id', 'username', 'description', 'data_type', 'created_at', 'updated_at')
 
 
 class DataSetRelatedField(serializers.RelatedField):
+    """数据集外键关联序列化"""
     queryset = DataSet.objects.get_queryset
 
     def to_representation(self, value):
@@ -112,7 +112,6 @@ class DataSetRelatedField(serializers.RelatedField):
 
 
 class DataSetDefineSerializer(serializers.ModelSerializer):
-    """数据集外键关联序列化"""
     data_set_id = DataSetRelatedField()
 
     class Meta:

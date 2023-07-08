@@ -64,7 +64,7 @@ def write_calculate_expressions(column_rule: ColumnRule, rule: GenerateRule,
                                 start_line: int, end_line: int, column_data: dict):
     t0 = time.perf_counter()
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
-    expressions = param.expressions
+    expressions = param.value
     log.info('function: ' + rule.function_name)
     log.info('expressions: ' + expressions)
     count = 0

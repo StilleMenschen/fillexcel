@@ -17,45 +17,7 @@ GET {{baseUrl}}/fills/generateRuleParameter
 ?rule=4880372080640
 &size=8 HTTP/1.1
 
-###
-GET {{baseUrl}}/fills/requirement
-?size=8 HTTP/1.1
-Authorization: Bearer {{token}}
 
-###
-GET {{baseUrl}}/fills/requirement/11258766614528 HTTP/1.1
-Authorization: Bearer {{token}}
-
-###
-POST {{baseUrl}}/fills/requirement HTTP/1.1
-Content-Type: application/json
-Authorization: Bearer {{token}}
-
-{
-    "username": "tom",
-    "file_id": "1",
-    "original_filename": "abc885呵呵.xlsx",
-    "start_line": 2,
-    "line_number": 100
-}
-
-###
-PUT {{baseUrl}}/fills/requirement/10593033297920 HTTP/1.1
-Content-Type: application/json
-Authorization: Bearer {{token}}
-
-{
-    "id": 5317329305600,
-    "username": "jack",
-    "file_id": "22啊21aa",
-    "original_filename": "abc呵呵.xlsx",
-    "start_line": 2,
-    "line_number": 100
-}
-
-###
-DELETE {{baseUrl}}/fills/requirement/10602918281216 HTTP/1.1
-Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/fills/columnRule

@@ -13,10 +13,11 @@ class FillingRequirementAdmin(admin.ModelAdmin):
 
 class ColumnRuleAdmin(admin.ModelAdmin):
     list_display = ('requirement_id', 'rule_id', 'column_name', 'column_type', 'associated_of')
+    list_filter = ('requirement_id',)
 
 
 class DataParameterAdmin(admin.ModelAdmin):
-    list_display = ('param_rule_id', 'column_rule_id', 'name', 'value', 'expressions', 'data_set_id')
+    list_display = ('param_rule_id', 'column_rule_id', 'name', 'value', 'data_set_id')
     list_filter = ("param_rule_id", 'column_rule_id')
 
 
@@ -31,15 +32,17 @@ class GenerateRuleParameterAdmin(admin.ModelAdmin):
 
 
 class DataSetAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'description', 'created_at', 'updated_at')
+    list_display = ('id', 'username', 'description', 'data_type', 'created_at', 'updated_at')
 
 
 class DataSetDefineAdmin(admin.ModelAdmin):
     list_display = ('id', 'data_set_id', 'name', 'data_type', 'created_at', 'updated_at')
+    list_filter = ('data_set_id',)
 
 
 class DataSetValueAdmin(admin.ModelAdmin):
     list_display = ('id', 'data_set_id', 'item', 'data_type', 'created_at', 'updated_at')
+    list_filter = ('data_set_id',)
 
 
 class DataSetBindAdmin(admin.ModelAdmin):
