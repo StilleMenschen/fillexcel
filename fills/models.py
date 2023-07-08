@@ -87,7 +87,7 @@ class GenerateRuleParameter(IdDateTimeBase):
         verbose_name = '生成规则参数'
         verbose_name_plural = verbose_name
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f'<[{self.name}] {self.data_type} {self.description}>'
 
 
@@ -101,7 +101,7 @@ class DataSet(IdDateTimeBase):
         verbose_name = '数据集'
         verbose_name_plural = verbose_name
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f'<[{self.__class__.__name__}] {self.description}>'
 
 
@@ -117,7 +117,7 @@ class DataSetDefine(IdDateTimeBase):
         verbose_name = '数据集定义'
         verbose_name_plural = verbose_name
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f'<[{self.name}] {self.data_type}>'
 
 
@@ -132,7 +132,7 @@ class DataSetValue(IdDateTimeBase):
         verbose_name = '数据集数据'
         verbose_name_plural = verbose_name
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f'<[{self.__class__.__name__}] {reprlib.repr(self.item)}>'
 
 
@@ -147,7 +147,7 @@ class DataSetBind(IdDateTimeBase):
         verbose_name = '数据集绑定列'
         verbose_name_plural = verbose_name
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f'<[{self.__class__.__name__}] {self.data_name} = {self.column_name}>'
 
 
@@ -182,5 +182,21 @@ class DataParameter(IdDateTimeBase):
         verbose_name = '列规则参数'
         verbose_name_plural = verbose_name
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f'<[{self.name}] {self.value}>'
+
+
+class FileRecord(IdDateTimeBase):
+    requirement = models.ForeignKey(FillingRequirement, on_delete=models.CASCADE, verbose_name='关联填充要求')
+
+    username = models.CharField('用户名', max_length=255)
+    file_id = models.CharField('对象存储ID', max_length=255)
+    filename = models.CharField('原始文件名', max_length=255)
+
+    class Meta:
+        db_table = 'file_record'
+        verbose_name = '文件记录'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return f'<[{self.file_id}] {self.filename} - {self.username}>'

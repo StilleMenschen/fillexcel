@@ -153,7 +153,8 @@ def fill_excel(fr: FillingRequirement):
         raise ValueError('没有定义列填充规则，请先定义规则')
     # 按定义的顺序填充, 需要关联其它数据的放在后面处理, 先处理固定值的
     column_rule_list: list[ColumnRule] = sorted(column_rule_list, key=operator.attrgetter('rule.fill_order'))
-    fill_data = {'filename': fr.original_filename, 'startLine': fr.start_line, 'data': {}}
+    fill_data = {'requirementId': fr.id, 'username': fr.username, 'filename': fr.original_filename,
+                 'startLine': fr.start_line, 'data': {}}
     column_data = fill_data['data']
     # 生成数据
     start_line, end_line = fr.start_line, fr.start_line + fr.line_number
@@ -167,5 +168,6 @@ def fill_excel(fr: FillingRequirement):
             column_range = range(start_line, end_line)
             column_data[column_rule.column_name] = tuple(val for _, val in zip(column_range, it))
     # 异步处理写入数据
-    result = write_to_excel.apply_async(args=(fill_data,))
-    log.info(result.get())
+    write_to_excel.apply_async(args=(fill_data,))
+    # result = write_to_excel.apply_async(args=(fill_data,))
+    # log.info(result.get())

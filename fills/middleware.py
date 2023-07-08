@@ -12,8 +12,9 @@ class ErrorHandlerMiddleware(MiddlewareMixin):
     def process_exception(request: HttpRequest, exception):
         error_message = str(exception)
         error_data = {
+            'data': tuple(),
             'path': request.get_full_path(),
-            'error': error_message
+            'message': error_message
         }
         log.error(error_data)
         return JsonResponse(error_data, status=500)

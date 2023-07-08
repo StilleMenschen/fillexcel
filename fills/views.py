@@ -68,6 +68,7 @@ class PagingViewMixin:
         # 构建返回的JSON数据
         response_data = {
             'data': serializer.data,  # 将查询数据转为列表
+            'message': None,
             'page': {
                 'number': page_obj.number,  # 当前页码
                 'totalPage': paginator.num_pages,  # 总页数
@@ -531,6 +532,7 @@ def base_list(obj, page: int = 1, size: int = 8):
     # 构建返回的JSON数据
     response_data = {
         'data': tuple(page_obj),  # 将查询数据转为列表
+        'message': None,
         'page': {
             'number': page_obj.number,  # 当前页码
             'totalPage': paginator.num_pages,  # 总页数
