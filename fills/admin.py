@@ -31,7 +31,7 @@ class GenerateRuleParameterAdmin(admin.ModelAdmin):
 
 
 class DataSetAdmin(admin.ModelAdmin):
-    list_display = ('id', 'description', 'created_at', 'updated_at')
+    list_display = ('id', 'username', 'description', 'created_at', 'updated_at')
 
 
 class DataSetDefineAdmin(admin.ModelAdmin):

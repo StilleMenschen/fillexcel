@@ -32,7 +32,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -41,7 +41,7 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class IndexView(generic.ListView):
@@ -221,7 +221,7 @@ class DataParameterDetail(APIView, CacheManager):
     填充函数参数: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'ColumnRuleDetail'
+    cache_prefix = 'DataParameterDetail'
 
     @staticmethod
     def get_object(pk):
@@ -280,7 +280,7 @@ class DataSetDetail(APIView, CacheManager):
     数据集: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'ColumnRuleDetail'
+    cache_prefix = 'DataSetDetail'
 
     @staticmethod
     def get_object(pk):
@@ -339,7 +339,7 @@ class DataSetDefineDetail(APIView, CacheManager):
     数据集定义: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'ColumnRuleDetail'
+    cache_prefix = 'DataSetDefineDetail'
 
     @staticmethod
     def get_object(pk):
@@ -398,7 +398,7 @@ class DataSetValueDetail(APIView, CacheManager):
     数据集数据: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'ColumnRuleDetail'
+    cache_prefix = 'DataSetValueDetail'
 
     @staticmethod
     def get_object(pk):
@@ -457,7 +457,7 @@ class DataSetBindDetail(APIView, CacheManager):
     数据集绑定: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'ColumnRuleDetail'
+    cache_prefix = 'DataSetBindDetail'
 
     @staticmethod
     def get_object(pk):

@@ -41,7 +41,7 @@ class DataParameterSerializer(serializers.ModelSerializer):
 class DataSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataSet
-        fields = ('id', 'description', 'created_at', 'updated_at')
+        fields = ('id', 'username', 'description', 'created_at', 'updated_at')
 
 
 class DataSetDefineSerializer(serializers.ModelSerializer):

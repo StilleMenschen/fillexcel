@@ -77,6 +77,7 @@ class GenerateRuleParameter(IdDateTimeBase):
 
 
 class DataSet(IdDateTimeBase):
+    username = models.CharField('用户名', max_length=255)
     description = models.TextField('描述')
 
     def __str__(self) -> str:
@@ -115,7 +116,7 @@ class DataSetBind(IdDateTimeBase):
 
 class ColumnRule(IdDateTimeBase):
     requirement = models.ForeignKey(FillingRequirement, on_delete=models.CASCADE, verbose_name='关联填充要求')
-    rule = models.OneToOneField(GenerateRule, on_delete=models.CASCADE, verbose_name='关联规则')
+    rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE, verbose_name='关联规则')
 
     column_name = models.CharField('单元格列', max_length=8, validators=(MaxLengthValidator(3, message='不要搞那么后面的列'),))
     column_type = models.CharField('单元格数据类型', choices=DATA_TYPE, max_length=64)
@@ -127,7 +128,7 @@ class ColumnRule(IdDateTimeBase):
 
 class DataParameter(IdDateTimeBase):
     column_rule = models.ForeignKey(ColumnRule, on_delete=models.CASCADE, verbose_name='关联列规则')
-    param_rule = models.OneToOneField(GenerateRuleParameter, on_delete=models.CASCADE, verbose_name='关联参数')
+    param_rule = models.ForeignKey(GenerateRuleParameter, on_delete=models.CASCADE, verbose_name='关联参数')
 
     name = models.CharField('参数名', max_length=255)
     value = models.CharField('参数值', blank=True, default=str, max_length=255)
