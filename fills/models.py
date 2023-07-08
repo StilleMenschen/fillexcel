@@ -48,6 +48,11 @@ class FillingRequirement(IdDateTimeBase):
         MinValueValidator(1, message='支持填充行数在1到200之间'),
         MaxValueValidator(200, message='支持填充行数在1到200之间')))
 
+    class Meta:
+        db_table = 'filling_requirement'
+        verbose_name = '填充要求'
+        verbose_name_plural = verbose_name
+
     def __str__(self):
         return f"<[{self.original_filename}] {self.start_line} of {self.line_number} line>"
 
@@ -57,6 +62,11 @@ class GenerateRule(IdDateTimeBase):
     function_name = models.CharField('函数名', max_length=255)
     fill_order = models.PositiveIntegerField('填入顺序')
     description = models.TextField('功能描述')
+
+    class Meta:
+        db_table = 'generate_rule'
+        verbose_name = '生成规则'
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return f"<[{self.rule_name}] {self.function_name}>"
@@ -72,6 +82,11 @@ class GenerateRuleParameter(IdDateTimeBase):
     default_value = models.CharField('默认值', blank=True, max_length=255)
     need_outside_data = models.BooleanField('是否需要外部数据')
 
+    class Meta:
+        db_table = 'generate_rule_parameter'
+        verbose_name = '生成规则参数'
+        verbose_name_plural = verbose_name
+
     def __str__(self) -> str:
         return f'<[{self.name}] {self.data_type} {self.description}>'
 
@@ -79,6 +94,11 @@ class GenerateRuleParameter(IdDateTimeBase):
 class DataSet(IdDateTimeBase):
     username = models.CharField('用户名', max_length=255)
     description = models.TextField('描述')
+
+    class Meta:
+        db_table = 'data_set'
+        verbose_name = '数据集'
+        verbose_name_plural = verbose_name
 
     def __str__(self) -> str:
         return f'<[{self.__class__.__name__}] {self.description}>'
@@ -90,6 +110,11 @@ class DataSetDefine(IdDateTimeBase):
     name = models.CharField('属性名', max_length=255)
     data_type = models.CharField('数据类型', choices=DATA_TYPE, max_length=255)
 
+    class Meta:
+        db_table = 'data_set_define'
+        verbose_name = '数据集定义'
+        verbose_name_plural = verbose_name
+
     def __str__(self) -> str:
         return f'<[{self.name}] {self.data_type}>'
 
@@ -99,6 +124,11 @@ class DataSetValue(IdDateTimeBase):
 
     item = models.TextField('数据项')
     data_type = models.CharField('数据类型（字典或字符串）', choices=DEFINE_DATA_TYPE, max_length=255)
+
+    class Meta:
+        db_table = 'data_set_value'
+        verbose_name = '数据集数据'
+        verbose_name_plural = verbose_name
 
     def __str__(self) -> str:
         return f'<[{self.__class__.__name__}] {reprlib.repr(self.item)}>'
@@ -110,6 +140,11 @@ class DataSetBind(IdDateTimeBase):
     column_name = models.CharField('单元格列名', max_length=8)
     data_name = models.CharField('关联属性名', max_length=255)
 
+    class Meta:
+        db_table = 'data_set_bind'
+        verbose_name = '数据集绑定列'
+        verbose_name_plural = verbose_name
+
     def __str__(self) -> str:
         return f'<[{self.__class__.__name__}] {self.data_name} = {self.column_name}>'
 
@@ -118,9 +153,15 @@ class ColumnRule(IdDateTimeBase):
     requirement = models.ForeignKey(FillingRequirement, on_delete=models.CASCADE, verbose_name='关联填充要求')
     rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE, verbose_name='关联规则')
 
-    column_name = models.CharField('单元格列', max_length=8, validators=(MaxLengthValidator(3, message='不要搞那么后面的列'),))
+    column_name = models.CharField('单元格列', max_length=8,
+                                   validators=(MaxLengthValidator(3, message='不要搞那么后面的列'),))
     column_type = models.CharField('单元格数据类型', choices=DATA_TYPE, max_length=64)
     associated_of = models.BooleanField('是否需要外部数据集', default=False)
+
+    class Meta:
+        db_table = 'column_rule'
+        verbose_name = '列规则'
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return f"<[{self.column_name}] {self.column_type} - {self.rule_id}>"
@@ -134,6 +175,11 @@ class DataParameter(IdDateTimeBase):
     value = models.CharField('参数值', blank=True, default=str, max_length=255)
     expressions = models.CharField('计算表达式', blank=True, max_length=512)
     data_set_id = models.BigIntegerField('关联数据集', null=True, blank=True)
+
+    class Meta:
+        db_table = 'data_parameter'
+        verbose_name = '列规则参数'
+        verbose_name_plural = verbose_name
 
     def __str__(self) -> str:
         return f'<[{self.name}] {self.value}>'

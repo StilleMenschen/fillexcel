@@ -1,0 +1,28 @@
+@baseUrl=http://127.0.0.1:4200
+
+# @name login
+POST {{baseUrl}}/api/token HTTP/1.1
+Content-Type: application/json
+
+{"username": "L", "password": "4321dcba"}
+
+###
+@token={{login.response.body.access}}
+
+###
+GET {{baseUrl}}/fills/columnRule
+?size=4 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/fills/columnRule HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "requirement_id": 11609010544640,
+    "rule_id": 4880372080640,
+    "column_name": "H",
+    "column_type": "string",
+    "associated_of": false
+}
