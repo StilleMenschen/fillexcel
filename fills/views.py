@@ -680,7 +680,9 @@ class FileRecordDetail(APIView):
             storage = Storage()
             data = io.BytesIO(storage.get_object(file_record.file_id))
             data.seek(0)
-            response = FileResponse(data, as_attachment=True, filename=file_record.filename)
+            # 返回文件下载
+            response = FileResponse(data, as_attachment=True, filename=file_record.filename,
+                                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             return response
         except Exception as e:
             log.error(str(e))
