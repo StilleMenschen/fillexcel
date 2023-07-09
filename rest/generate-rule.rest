@@ -13,12 +13,18 @@ Content-Type: application/json
 GET {{baseUrl}}/fills/generateRule
 ?page=1
 &size=4 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/fills/generateRule/4884580073472 HTTP/1.1
+Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/fills/generateRuleParameter
-?rule=4880372080640
+?ruleId=4880372080640
 &size=8 HTTP/1.1
+Authorization: Bearer {{token}}
 
 ###
-GET {{baseUrl}}/users/2/ HTTP/1.1
+GET {{baseUrl}}/fills/generateRuleParameter/4881930936320 HTTP/1.1
 Authorization: Bearer {{token}}

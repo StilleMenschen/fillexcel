@@ -169,5 +169,6 @@ def fill_excel(fr: FillingRequirement):
             column_data[column_rule.column_name] = tuple(val for _, val in zip(column_range, it))
     # 异步处理写入数据
     write_to_excel.apply_async(args=(fill_data,))
+    del fill_data
     # result = write_to_excel.apply_async(args=(fill_data,))
     # log.info(result.get())

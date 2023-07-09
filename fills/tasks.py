@@ -30,22 +30,30 @@ def write_to_excel(data_for_fill: dict):
     for column, data_list in excel_data.items():
         range_len = len(data_list)
         sheet.range(f'{column}{start_line}').value = tuple((v,) for v in data_list)
+        # 设置格式为文本
         sheet.range(f'{column}{start_line}:{column}{start_line + range_len}').number_format = '@'
-    filename = data_for_fill['filename']
-    filename, ext = os.path.splitext(filename)
-    filename = f"{filename}-{time.time_ns()}{ext}"
+    filename = add_timestamp_for_filename(data_for_fill['filename'])
     tempdir = tempfile.TemporaryDirectory()
     tmp_dir = pathlib.Path(tempdir.name)
     save_path = tmp_dir / filename
     book.save(path=save_path)
     book.close()
     excel_app.quit()
+    del data_for_fill['data']
     storge = Storage()
     file_id = storge.store_file(save_path)
     tempdir.cleanup()
     save_record(data_for_fill['requirementId'], data_for_fill['username'], file_id, filename)
+    del data_for_fill
     log.info(f'elapsed time {time.perf_counter() - t0}')
     return filename
+
+
+def add_timestamp_for_filename(filename=None):
+    if not filename:
+        return filename
+    filename, ext = os.path.splitext(filename)
+    return f"{filename}-{time.time_ns()}{ext}"
 
 
 def save_record(requirement_id, username, file_id, filename):

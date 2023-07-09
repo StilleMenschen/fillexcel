@@ -133,3 +133,18 @@ class DataSetBindSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataSetBind
         fields = ('id', 'data_set_id', 'column_name', 'data_name', 'created_at', 'updated_at')
+
+
+class GenerateRuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GenerateRule
+        fields = ('id', 'rule_name', 'function_name', 'fill_order', 'description', 'created_at', 'updated_at')
+
+
+class GenerateRuleParameterSerializer(serializers.ModelSerializer):
+    rule_id = GenerateRuleRelatedField()
+
+    class Meta:
+        model = GenerateRuleParameter
+        fields = ('id', 'rule_id', 'name', 'data_type', 'description', 'required', 'default_value', 'need_outside_data',
+                  'created_at', 'updated_at')

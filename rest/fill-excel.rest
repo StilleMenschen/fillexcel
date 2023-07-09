@@ -1,0 +1,18 @@
+@baseUrl=http://127.0.0.1:4200
+
+# @name login
+POST {{baseUrl}}/api/token HTTP/1.1
+Content-Type: application/json
+
+{"username": "L", "password": "4321dcba"}
+
+###
+@token={{login.response.body.access}}
+
+###
+GET {{baseUrl}}/fills/5317329305600 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/fills/5317329305600 HTTP/1.1
+Authorization: Bearer {{token}}

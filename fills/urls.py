@@ -7,7 +7,7 @@ app_name = "fills"
 urlpatterns = (
     path("", views.IndexView.as_view(), name="index"),
     # 填充表格
-    path("<int:req_id>", views.generates, name="generates"),
+    path("<int:requirement_id>", views.Generates.as_view(), name="generates"),
     # 填充要求
     path("requirement", views.FillingRequirementList.as_view(), {'format': 'json'}, name="requirement"),
     path("requirement/<int:pk>", views.FillingRequirementDetail.as_view(), name="requirement_detail"),
@@ -29,7 +29,12 @@ urlpatterns = (
     # 数据集绑定
     path("dataSetBind", views.DataSetBindList.as_view(), {'format': 'json'}, name="data_set_bind"),
     path("dataSetBind/<int:pk>", views.DataSetBindDetail.as_view(), name="data_set_bind_detail"),
-    # 生成规则和参数
-    path("generateRule", views.get_generate_rule_list, name="generate_rule_list"),
-    path("generateRuleParameter", views.get_generate_rule_parameter_list, name="generate_rule_parameter_list"),
+    # 生成规则
+    path("generateRule", views.GenerateRuleList.as_view(), {'format': 'json'}, name="generate_rule_list"),
+    path("generateRule/<int:pk>", views.GenerateRuleDetail.as_view(), name="generate_rule_detail"),
+    # 生成规则参数
+    path("generateRuleParameter", views.GenerateRuleParameterList.as_view(), {'format': 'json'},
+         name="generate_rule_parameter_list"),
+    path("generateRuleParameter/<int:pk>", views.GenerateRuleParameterDetail.as_view(),
+         name="generate_rule_parameter_detail"),
 )

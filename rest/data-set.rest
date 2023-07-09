@@ -17,18 +17,18 @@ Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/fills/dataSetDefine
-?data_set_id=7016422940672
+?dataSetId=7016422940672
 &size=8 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/fills/dataSetValue
-?data_set_id=7016422940672
+?dataSetId=7016422940672
 &size=8 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/fills/dataSetBind
-?data_set_id=7016422940672
+?dataSetId=7016422940672
 &size=8 HTTP/1.1
 Authorization: Bearer {{token}}

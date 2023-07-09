@@ -11,7 +11,7 @@ Content-Type: application/json
 
 ###
 GET {{baseUrl}}/fills/columnRule
-?requirement_id=
+?requirementId=
 &size=8 HTTP/1.1
 Authorization: Bearer {{token}}
 
@@ -21,15 +21,15 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "requirement_id": 11798343319552,
+    "requirement_id": 12348647260160,
     "rule_id": 4880372080640,
-    "column_name": "EARE",
+    "column_name": "EAE",
     "column_type": "string",
     "associated_of": false
 }
 
 ###
 GET {{baseUrl}}/fills/dataParameter
-?column_rule_id=
+?columnRuleId=7019797061632
 &size=8 HTTP/1.1
 Authorization: Bearer {{token}}
