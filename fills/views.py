@@ -320,6 +320,8 @@ class DataSetDetail(APIView, CacheManager):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
+        if DataSetBind.objects.filter(data_set__id__exact=pk).exists():
+            raise RuntimeError('已经存在绑定此数据的生成请求，不能删除')
         data_set = self.get_object(pk)
         data_set.delete()
         self.invalid_cache(pk)
@@ -611,8 +613,8 @@ class Generates(APIView):
         took = time.perf_counter() - t0
         return Response(dict(requirement=req_id, took=took))
 
-    def get(self, request: Request, requirement_id=None, format=None):
+    def get(self, request: Request, requirement_id=None):
         return self.generates(requirement_id)
 
-    def post(self, request: Request, requirement_id=None, format=None):
+    def post(self, request: Request, requirement_id=None):
         return self.generates(requirement_id)

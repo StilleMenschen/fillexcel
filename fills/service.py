@@ -26,6 +26,9 @@ def write_value_list(column_rule: ColumnRule, rule: GenerateRule,
                      start_line: int, end_line: int, column_data: dict):
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
     data_value_list = DataSetValue.objects.filter(data_set__exact=param.data_set_id)
+    if not len(data_value_list):
+        log.warning(f'{rule.function_name} -> {column_rule.column_name}: 关联填充数据为空')
+        return
     values = tuple(d.item for d in data_value_list)
     log.info('column: ' + column_rule.column_name)
     log.info('function: ' + rule.function_name)
@@ -43,6 +46,9 @@ def write_associated_list(column_rule: ColumnRule, rule: GenerateRule,
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
     data_bind = DataSetBind.objects.filter(data_set__exact=param.data_set_id)
     data_value = DataSetValue.objects.filter(data_set__exact=param.data_set_id)
+    if not len(data_bind) or not len(data_value):
+        log.warning(f'{rule.function_name} -> {column_rule.column_name}: 关联填充数据为空')
+        return
     log.info(f'bind column count: {len(data_bind)}')
     log.info('function: ' + rule.function_name)
     # 数据集
@@ -93,6 +99,9 @@ def write_join_string(column_rule: ColumnRule, rule: GenerateRule,
     param_dict = dict(((p.name, p.value) for p in param_list))
     delimiter = param_dict['delimiter']
     columns = param_dict['columns'].split(',')
+    if not len(columns):
+        log.warning(f'{rule.function_name} -> {column_rule.column_name}: 关联填充数据为空')
+        return
     log.info('function: ' + rule.function_name)
     log.info('delimiter: ' + delimiter)
     log.info('columns: ' + str(columns))

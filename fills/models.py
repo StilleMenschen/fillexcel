@@ -187,8 +187,7 @@ class DataParameter(IdDateTimeBase):
 
 
 class FileRecord(IdDateTimeBase):
-    requirement = models.ForeignKey(FillingRequirement, on_delete=models.CASCADE, verbose_name='关联填充要求')
-
+    requirement_id = models.BigIntegerField('关联填充要求')
     username = models.CharField('用户名', max_length=255)
     file_id = models.CharField('对象存储ID', max_length=255)
     filename = models.CharField('原始文件名', max_length=255)
