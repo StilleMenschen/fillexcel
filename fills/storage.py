@@ -4,6 +4,7 @@ import uuid
 from minio import Minio
 
 from .logger import init_logger
+from .configurator import read_minio_config
 
 log = init_logger(__name__, 'storage.log')
 
@@ -21,22 +22,12 @@ def convert_path(path):
 
 
 class Storage:
-    server_config = {
-        "url": "http://localhost:9090/api/v1/service-account-credentials",
-        "accessKey": "zNpKlffFio4cBZxRxjoO",
-        "secretKey": "EVwOLLwzzQNhAmPWJm6WF1ha4VDR2VNi8rDL4IXk",
-        "api": "s3v4",
-        "path": "auto"
-    }
-    bucket = 'fills'
 
     def __init__(self):
-        self.client = Minio(
-            "localhost:9000",
-            access_key=self.server_config['accessKey'],
-            secret_key=self.server_config['secretKey'],
-            secure=False
-        )
+        config = read_minio_config()
+        self.bucket = config['bucket']
+        del config['bucket']
+        self.client = Minio(**config)
         found = self.client.bucket_exists(self.bucket)
         if not found:
             self.client.make_bucket(self.bucket)

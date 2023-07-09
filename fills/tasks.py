@@ -10,13 +10,11 @@ from celery import Celery
 from .utils import SnowFlake
 from .logger import init_logger
 from .storage import Storage
+from .configurator import read_postgres_config, read_celery_config
 
-app = Celery('fills',
-             broker='amqp://invoice:40Z9y5RqCNecG6Fx@gz.tystnad.tech:32765//',
-             backend='redis://default:ZI6vLhsHdKCjeiyw@gz.tystnad.tech:46379/1')
+app = Celery('fills', **read_celery_config())
 
 log = init_logger(__name__, 'celery-task.log')
-storge = Storage()
 
 
 # celery -A fills.tasks worker -l INFO -c 2 -P eventlet
@@ -42,6 +40,7 @@ def write_to_excel(data_for_fill: dict):
     book.save(path=save_path)
     book.close()
     excel_app.quit()
+    storge = Storage()
     file_id = storge.store_file(save_path)
     tempdir.cleanup()
     save_record(data_for_fill['requirementId'], data_for_fill['username'], file_id, filename)
@@ -51,8 +50,7 @@ def write_to_excel(data_for_fill: dict):
 
 def save_record(requirement_id, username, file_id, filename):
     try:
-        connection = psycopg2.connect(user="fillexcel", password="y7wdPV46XtnQevmJ", host="gz.tystnad.tech",
-                                      port="42345", database="fillexcel")
+        connection = psycopg2.connect(**read_postgres_config())
         cursor = connection.cursor()
         # Executing a SQL query to insert data into table
         insert_query = f"""insert into public.file_record 
