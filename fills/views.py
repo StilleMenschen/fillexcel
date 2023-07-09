@@ -1,14 +1,17 @@
+import datetime
+import io
 import logging
 import time
 import typing
 
 from django.contrib.auth.models import User, Group
 from django.core.paginator import Paginator
-from django.http import QueryDict
+from django.http import QueryDict, FileResponse
 from django.utils.decorators import method_decorator
 from django.views import generic
 from django.views.decorators.cache import cache_page
 from rest_framework import permissions, viewsets, status
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
@@ -16,12 +19,14 @@ from rest_framework.views import APIView
 
 from .cache import CacheManager
 from .models import DataSet, DataSetDefine, DataSetValue, DataSetBind
-from .models import FillingRequirement, GenerateRule, GenerateRuleParameter, ColumnRule, DataParameter
+from .models import FillingRequirement, GenerateRule, GenerateRuleParameter, ColumnRule, DataParameter, FileRecord
 from .serializers import DataSetSerializer, DataSetDefineSerializer, DataSetValueSerializer, DataSetBindSerializer
+from .serializers import FileUploadSerializer, FileRecordSerializer
 from .serializers import FillingRequirementSerializer, ColumnRuleSerializer, DataParameterSerializer
 from .serializers import GenerateRuleSerializer, GenerateRuleParameterSerializer
 from .serializers import UserSerializer, GroupSerializer
 from .service import fill_excel
+from .storage import Storage
 
 log = logging.getLogger(__name__)
 
@@ -599,7 +604,7 @@ class GenerateRuleParameterDetail(APIView, CacheManager):
         return Response(data)
 
 
-class Generates(APIView):
+class GeneratesView(APIView):
     """
     按要求填入并生成excel文件
     """
@@ -618,3 +623,70 @@ class Generates(APIView):
 
     def post(self, request: Request, requirement_id=None):
         return self.generates(requirement_id)
+
+
+class FileUploadView(APIView):
+    """文件上传"""
+    parser_classes = (MultiPartParser, FormParser)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        serializer = FileUploadSerializer(data=request.data)
+
+        if serializer.is_valid():
+            file = serializer.validated_data['file']
+            storage = Storage()
+            hash_id = storage.store_object(file.file, file.size, 'requirement',
+                                           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return Response(dict(fileId=hash_id, createdAt=datetime.datetime.now()), status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FileRecordList(APIView, PagingViewMixin):
+    """
+    生成文件记录: 查询所有/新增
+    """
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request: Request, format=None):
+        requirement_id = request.query_params.get('requirementId', None)
+        username = request.query_params.get('username', None)
+        file_record = FileRecord.objects.get_queryset()
+        if requirement_id:
+            file_record = file_record.filter(requirement_id__exact=int(requirement_id))
+        if username:
+            file_record = file_record.filter(username__exact=username)
+        file_record = file_record.order_by('-id').values()
+        return self.paging(file_record, request.query_params, FileRecordSerializer)
+
+
+class FileRecordDetail(APIView):
+    """
+    生成文件记录: 单个查询/删除
+    """
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            return FileRecord.objects.get(pk=pk)
+        except FileRecord.DoesNotExist:
+            raise ValueError('未查询到对应数据')
+
+    def get(self, request, pk):
+        file_record = self.get_object(pk)
+        try:
+            storage = Storage()
+            data = io.BytesIO(storage.get_object(file_record.file_id))
+            data.seek(0)
+            response = FileResponse(data, as_attachment=True, filename=file_record.filename)
+            return response
+        except Exception as e:
+            log.error(str(e))
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, pk):
+        file_record = self.get_object(pk)
+        file_record.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -3,8 +3,8 @@ import uuid
 
 from minio import Minio
 
-from .logger import init_logger
 from .configurator import read_minio_config
+from .logger import init_logger
 
 log = init_logger(__name__, 'storage.log')
 
@@ -33,22 +33,52 @@ class Storage:
             self.client.make_bucket(self.bucket)
             print(f"Bucket '{self.bucket}' created")
 
-    def store_file(self, file_path):
+    def store_object_for_path(self, file_path, folder=None, content_type=None):
         p = convert_path(file_path)
-        filename = f'{uuid.uuid1().hex}'
-        obj = self.client.fput_object(
-            self.bucket, filename, p,
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        hash_id = uuid.uuid1().hex
+        if folder:
+            filename = f'{folder}/{hash_id}'
+        else:
+            filename = hash_id
+        if content_type:
+            obj = self.client.fput_object(self.bucket, filename, p, content_type)
+        else:
+            obj = self.client.fput_object(self.bucket, filename, p)
+
         log.info(f'save object {file_path} to {filename}, etag {obj.etag}')
         return filename
 
-    def get_file(self, file_id) -> bytes:
-        obj = self.client.get_object('fills', file_id)
+    def store_object(self, file, size, folder=None, content_type=None):
+        hash_id = uuid.uuid1().hex
+        if folder:
+            filename = f'{folder}/{hash_id}'
+        else:
+            filename = hash_id
+        if content_type:
+            obj = self.client.put_object(self.bucket, filename, file, size, content_type)
+        else:
+            obj = self.client.put_object(self.bucket, filename, file, size)
+        log.info(f'save object {file} to {filename}, etag {obj.etag}')
+        return hash_id
+
+    def get_object(self, file_id, folder=None) -> bytes:
+        if folder:
+            obj = self.client.get_object(self.bucket, f'{folder}/{file_id}')
+        else:
+            obj = self.client.get_object(self.bucket, file_id)
         return obj.data
 
-    def remove_file(self, file_id):
-        self.client.remove_object('fills', file_id)
+    def get_object_to_path(self, file_id, fspath, folder=None):
+        if folder:
+            self.client.fget_object(self.bucket, f'{folder}/{file_id}', fspath)
+        else:
+            self.client.fget_object(self.bucket, file_id, fspath)
+
+    def remove_object(self, file_id, folder=None):
+        if folder:
+            self.client.remove_object(self.bucket, f'{folder}/{file_id}')
+        else:
+            self.client.remove_object(self.bucket, file_id)
 
 
 def main():

@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 
 from .models import DataSet, DataSetDefine, DataSetValue, DataSetBind
-from .models import FillingRequirement, ColumnRule, DataParameter
+from .models import FillingRequirement, ColumnRule, DataParameter, FileRecord
 from .models import GenerateRule, GenerateRuleParameter
 
 
@@ -148,3 +148,14 @@ class GenerateRuleParameterSerializer(serializers.ModelSerializer):
         model = GenerateRuleParameter
         fields = ('id', 'rule_id', 'name', 'data_type', 'description', 'required', 'default_value', 'need_outside_data',
                   'created_at', 'updated_at')
+
+
+class FileUploadSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=255, allow_blank=True, allow_null=True)
+    file = serializers.FileField(max_length=32, use_url=False)
+
+
+class FileRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FileRecord
+        fields = ('id', 'requirement_id', 'username', 'file_id', 'filename', 'created_at', 'updated_at')

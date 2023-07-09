@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import DataSet, DataSetDefine, DataSetValue, DataSetBind
+from .models import FileRecord
 from .models import FillingRequirement, ColumnRule, DataParameter
 from .models import GenerateRule, GenerateRuleParameter
 
@@ -49,6 +50,10 @@ class DataSetBindAdmin(admin.ModelAdmin):
     list_display = ('id', 'data_set_id', 'column_name', 'data_name', 'created_at', 'updated_at')
 
 
+class FileRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'requirement_id', 'username', 'file_id', 'filename', 'created_at')
+
+
 admin.site.register(FillingRequirement, FillingRequirementAdmin)
 admin.site.register(ColumnRule, ColumnRuleAdmin)
 admin.site.register(DataParameter, DataParameterAdmin)
@@ -59,3 +64,5 @@ admin.site.register(DataSet, DataSetAdmin)
 admin.site.register(DataSetDefine, DataSetDefineAdmin)
 admin.site.register(DataSetValue, DataSetValueAdmin)
 admin.site.register(DataSetBind, DataSetBindAdmin)
+
+admin.site.register(FileRecord, FileRecordAdmin)

@@ -48,3 +48,19 @@ Authorization: Bearer {{token}}
 ###
 DELETE {{baseUrl}}/fills/requirement/11798343319552 HTTP/1.1
 Authorization: Bearer {{token}}
+
+###
+POST {{baseUrl}}/fills/upload HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="username"
+
+berhaments
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="工作簿1.xlsx"
+Content-Type: text/sql
+
+< D:/工作簿1.xlsx
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
