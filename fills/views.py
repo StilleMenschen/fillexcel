@@ -635,10 +635,14 @@ class FileUploadView(APIView):
 
         if serializer.is_valid():
             file = serializer.validated_data['file']
-            storage = Storage()
-            hash_id = storage.store_object(file.file, file.size, 'requirement',
-                                           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            return Response(dict(fileId=hash_id, createdAt=datetime.datetime.now()), status=status.HTTP_201_CREATED)
+            try:
+                storage = Storage(retry=0)
+                hash_id = storage.store_object(file.file, file.size, 'requirement',
+                                               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                return Response(dict(fileId=hash_id, createdAt=datetime.datetime.now()), status=status.HTTP_201_CREATED)
+            except Exception as e:
+                log.error('上传文件异常' + str(e))
+                raise ValueError('处理上传文件失败，请稍后再试')
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -677,16 +681,15 @@ class FileRecordDetail(APIView):
     def get(self, request, pk):
         file_record = self.get_object(pk)
         try:
-            storage = Storage()
+            storage = Storage(retry=0)
             data = io.BytesIO(storage.get_object(file_record.file_id))
             data.seek(0)
             # 返回文件下载
-            response = FileResponse(data, as_attachment=True, filename=file_record.filename,
-                                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            return response
+            return FileResponse(data, as_attachment=True, filename=file_record.filename,
+                                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         except Exception as e:
-            log.error(str(e))
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            log.error('处理下载文件异常' + str(e))
+            raise ValueError('处理下载文件异常，请稍后再试')
 
     def delete(self, request, pk):
         file_record = self.get_object(pk)

@@ -27,8 +27,13 @@ def write_to_excel(data_for_fill: dict):
     tmp_dir = pathlib.Path(tempdir.name)
     filename = add_timestamp_for_filename(data_for_fill['filename'])
     save_path = tmp_dir / filename
-    storge = Storage()
-    storge.get_object_to_path(data_for_fill['fileId'], str(save_path), 'requirement')
+    try:
+        storge = Storage()
+        storge.get_object_to_path(data_for_fill['fileId'], str(save_path), 'requirement')
+    except Exception as e:
+        tempdir.cleanup()
+        log.error(str(e))
+        return False
     # 填入数据
     start_line = data_for_fill['startLine']
     excel_data: dict = data_for_fill['data']
@@ -44,10 +49,15 @@ def write_to_excel(data_for_fill: dict):
     book.close()
     excel_app.quit()
     del data_for_fill['data']
-    # 上传写入后的文件
-    file_id = storge.store_object_for_path(
-        save_path, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    tempdir.cleanup()
+    try:
+        # 上传写入后的文件
+        file_id = storge.store_object_for_path(
+            save_path, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    except Exception as e:
+        log.error(str(e))
+        return False
+    finally:
+        tempdir.cleanup()
     # 文件生成记录
     save_record(data_for_fill['requirementId'], data_for_fill['username'], file_id, filename)
     del data_for_fill

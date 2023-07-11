@@ -6,4 +6,6 @@ eventlet==0.33.1
 redis==3.5.3
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
+certifi==2023.5.7
+urllib3==2.0.3
 minio==7.1.0

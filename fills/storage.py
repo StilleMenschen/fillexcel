@@ -1,6 +1,8 @@
 import os
 import uuid
 
+import certifi
+import urllib3
 from minio import Minio
 
 from .configurator import read_minio_config
@@ -23,11 +25,24 @@ def convert_path(path):
 
 class Storage:
 
-    def __init__(self):
+    def __init__(self, retry=4):
+        timeout = 30  # 30 秒超时
+        ca_certs = os.environ.get('SSL_CERT_FILE') or certifi.where()
+        http_client = urllib3.PoolManager(
+            timeout=urllib3.util.Timeout(connect=timeout, read=timeout),
+            maxsize=10,
+            cert_reqs='CERT_REQUIRED',
+            ca_certs=ca_certs,
+            retries=urllib3.Retry(
+                total=retry,
+                backoff_factor=0.2,
+                status_forcelist=[500, 502, 503, 504]
+            )
+        )
         config = read_minio_config()
         self.bucket = config['bucket']
         del config['bucket']
-        self.client = Minio(**config)
+        self.client = Minio(http_client=http_client, **config)
         found = self.client.bucket_exists(self.bucket)
         if not found:
             self.client.make_bucket(self.bucket)
