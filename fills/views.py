@@ -4,13 +4,13 @@ import logging
 import time
 import typing
 
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.http import QueryDict, FileResponse
 from django.utils.decorators import method_decorator
 from django.views import generic
 from django.views.decorators.cache import cache_page
-from rest_framework import permissions, viewsets, status
+from rest_framework import permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -24,7 +24,7 @@ from .serializers import DataSetSerializer, DataSetDefineSerializer, DataSetValu
 from .serializers import FileUploadSerializer, FileRecordSerializer
 from .serializers import FillingRequirementSerializer, ColumnRuleSerializer, DataParameterSerializer
 from .serializers import GenerateRuleSerializer, GenerateRuleParameterSerializer
-from .serializers import UserSerializer, GroupSerializer
+from .serializers import UserSerializer
 from .service import fill_excel
 from .storage import Storage
 
@@ -32,22 +32,29 @@ log = logging.getLogger(__name__)
 
 
 # Create your views here.
-class UserViewSet(viewsets.ModelViewSet):
+class UserView(APIView, CacheManager):
     """
-    API endpoint that allows users to be viewed or edited.
+    用户信息查询
     """
-    queryset = User.objects.all().order_by('-date_joined')
-    serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
+    @staticmethod
+    def get_object(username):
+        try:
+            return User.objects.get(username__exact=username)
+        except User.DoesNotExist:
+            raise ValueError('未查询到对应用户信息')
 
-class GroupViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, username=None):
+
+        def query():
+            user = self.get_object(username)
+            serializer = UserSerializer(user)
+            return serializer.data
+
+        data = self.get_cache(username, query)
+
+        return Response(data)
 
 
 class IndexView(generic.ListView):

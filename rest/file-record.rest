@@ -4,7 +4,7 @@
 POST {{baseUrl}}/api/token HTTP/1.1
 Content-Type: application/json
 
-{"username": "L", "password": "4321dcba"}
+{"username": "jack", "password": "4321dcba"}
 
 ###
 @token={{login.response.body.access}}

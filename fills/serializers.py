@@ -6,16 +6,10 @@ from .models import FillingRequirement, ColumnRule, DataParameter, FileRecord
 from .models import GenerateRule, GenerateRuleParameter
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups']
-
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Group
-        fields = ['url', 'name']
+        fields = ['id', 'username', 'email', 'date_joined']
 
 
 class FillingRequirementSerializer(serializers.ModelSerializer):

@@ -9,10 +9,7 @@ Content-Type: application/json
 ###
 @token={{login.response.body.access}}
 
-###
-GET {{baseUrl}}/fills/5317329305600 HTTP/1.1
-Authorization: Bearer {{token}}
 
 ###
-POST {{baseUrl}}/fills/5317329305600 HTTP/1.1
+GET {{baseUrl}}/user/jack HTTP/1.1
 Authorization: Bearer {{token}}
