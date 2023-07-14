@@ -5,7 +5,7 @@ import certifi
 import urllib3
 from minio import Minio
 
-from .configurator import read_minio_config
+from fillexcel.configurator import read_minio_config
 from .logger import init_logger
 
 log = init_logger(__name__, 'storage.log')
@@ -143,3 +143,4 @@ def main():
     obj = client.get_object('fills', filename)
     print(obj.data)
     client.remove_object('fills', filename)
+    client.stat_object('fills', '4dfd907e1e3011ee94c82cf05dddedd1')

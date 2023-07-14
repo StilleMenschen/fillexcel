@@ -7,7 +7,7 @@ import psycopg2
 import xlwings as xw
 from celery import Celery
 
-from .configurator import read_postgres_config, read_celery_config
+from fillexcel.configurator import read_postgres_config, read_celery_config
 from .logger import init_logger
 from .storage import Storage
 from .utils import SnowFlake

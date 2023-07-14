@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from .configurator import read_postgres_config, read_celery_config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -76,24 +78,28 @@ WSGI_APPLICATION = 'fillexcel.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+db_config = read_postgres_config()
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'fillexcel',
-        'USER': 'fillexcel',
-        'PASSWORD': 'y7wdPV46XtnQevmJ',
-        'HOST': 'gz.tystnad.tech',  # 如果数据库在本地，请填写本机 IP 地址或者 localhost
-        'PORT': '42345',  # 默认端口号是 5432
+        'NAME': db_config['database'],
+        'USER': db_config['user'],
+        'PASSWORD': db_config['password'],
+        'HOST': db_config['host'],  # 如果数据库在本地，请填写本机 IP 地址或者 localhost
+        'PORT': db_config['port'],  # 默认端口号是 5432
         "TEST": {
-            "NAME": "test_fillexcel"
+            "NAME": f"test_{db_config['database']}"
         }
     }
 }
 
+cache_config = read_celery_config()
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': 'redis://default:ZI6vLhsHdKCjeiyw@gz.tystnad.tech:46379/2',
+        'LOCATION': cache_config['backend'],
         'TIMEOUT': timedelta(hours=2).total_seconds()
     }
 }
