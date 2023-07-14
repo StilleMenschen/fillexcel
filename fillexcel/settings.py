@@ -148,7 +148,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 创建log文件的文件夹
-LOG_DIR = BASE_DIR / 'var' / 'logs'
+LOG_DIR = BASE_DIR / 'logs'
 if not LOG_DIR.exists():
     LOG_DIR.mkdir(parents=True)
 
