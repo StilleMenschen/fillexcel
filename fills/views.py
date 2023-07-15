@@ -101,7 +101,11 @@ class FillingRequirementList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        requirement = FillingRequirement.objects.order_by('-id').values()
+        username = request.query_params.get('username', None)
+        requirement = FillingRequirement.objects.get_queryset()
+        if username:
+            requirement.filter(username__exact=username)
+        requirement = requirement.order_by('-id').values()
         return self.paging(requirement, request.query_params, FillingRequirementSerializer)
 
     def post(self, request: Request, format=None):

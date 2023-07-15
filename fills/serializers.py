@@ -15,8 +15,8 @@ class UserSerializer(serializers.ModelSerializer):
 class FillingRequirementSerializer(serializers.ModelSerializer):
     class Meta:
         model = FillingRequirement
-        fields = ('id', 'username', 'file_id', 'original_filename', 'start_line', 'line_number', 'created_at',
-                  'updated_at')
+        fields = ('id', 'username', 'remark', 'file_id', 'original_filename', 'start_line', 'line_number',
+                  'created_at', 'updated_at')
 
 
 class FillingRequirementRelatedField(serializers.RelatedField):

@@ -8,8 +8,8 @@ from .models import GenerateRule, GenerateRuleParameter
 
 # Register your models here.
 class FillingRequirementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'file_id', 'original_filename', 'start_line', 'line_number', 'created_at',
-                    'updated_at')
+    list_display = ('id', 'username', 'remark', 'file_id', 'original_filename', 'start_line', 'line_number',
+                    'created_at', 'updated_at')
 
 
 class ColumnRuleAdmin(admin.ModelAdmin):

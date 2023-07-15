@@ -1,7 +1,7 @@
 @baseUrl=http://127.0.0.1:4200
 
 # @name login
-POST {{baseUrl}}/api/token HTTP/1.1
+POST {{baseUrl}}/auth/token HTTP/1.1
 Content-Type: application/json
 
 {"username": "jack", "password": "4321dcba"}
@@ -15,7 +15,7 @@ GET {{baseUrl}}/fills/requirement
 Authorization: Bearer {{token}}
 
 ###
-GET {{baseUrl}}/fills/requirement/11258766614528 HTTP/1.1
+GET {{baseUrl}}/fills/requirement/12348647260160 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
@@ -25,6 +25,7 @@ Authorization: Bearer {{token}}
 
 {
     "username": "tom",
+    "remark": "哦吼",
     "file_id": "1",
     "original_filename": "abc885呵呵.xlsx",
     "start_line": 2,
@@ -32,13 +33,13 @@ Authorization: Bearer {{token}}
 }
 
 ###
-PUT {{baseUrl}}/fills/requirement/10593033297920 HTTP/1.1
+PUT {{baseUrl}}/fills/requirement/12348647260160 HTTP/1.1
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "id": 5317329305600,
     "username": "jack",
+    "remark": "哦吼001",
     "file_id": "22啊21aa",
     "original_filename": "abc呵呵.xlsx",
     "start_line": 2,
@@ -46,7 +47,7 @@ Authorization: Bearer {{token}}
 }
 
 ###
-DELETE {{baseUrl}}/fills/requirement/11798343319552 HTTP/1.1
+DELETE {{baseUrl}}/fills/requirement/16697376522240 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
