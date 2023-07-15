@@ -102,9 +102,15 @@ class FillingRequirementList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         username = request.query_params.get('username', None)
+        remark = request.query_params.get('remark', None)
+        original_filename = request.query_params.get('original_filename', None)
         requirement = FillingRequirement.objects.get_queryset()
         if username:
-            requirement.filter(username__exact=username)
+            requirement = requirement.filter(username__exact=username)
+        if remark:
+            requirement = requirement.filter(remark__contains=remark)
+        if original_filename:
+            requirement = requirement.filter(original_filename__contains=original_filename)
         requirement = requirement.order_by('-id').values()
         return self.paging(requirement, request.query_params, FillingRequirementSerializer)
 

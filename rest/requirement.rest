@@ -24,7 +24,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "username": "tom",
+    "username": "jack",
     "remark": "哦吼",
     "file_id": "1",
     "original_filename": "abc885呵呵.xlsx",
