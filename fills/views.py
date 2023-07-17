@@ -160,6 +160,11 @@ class FillingRequirementDetail(APIView, CacheManager):
         requirement = self.get_object(pk)
         requirement.delete()
         self.invalid_cache(pk)
+        try:
+            storage = Storage(retry=0)
+            storage.remove_object(requirement.file_id, 'requirement')
+        except Exception as e:
+            log.error("删除填充要求的关联文件异常:" + str(e))
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
