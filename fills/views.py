@@ -37,6 +37,7 @@ class UserView(APIView, CacheManager):
     用户信息查询
     """
     permission_classes = (permissions.IsAuthenticated,)
+    cache_prefix = 'User'
 
     @staticmethod
     def get_object(username):
@@ -176,9 +177,14 @@ class ColumnRuleList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         requirement_id = request.query_params.get('requirementId', None)
+        column_name = request.query_params.get('columnName', None)
+        if not requirement_id:
+            raise ValueError('查询列规则必须传需求ID')
         column_rule = ColumnRule.objects.get_queryset()
         if requirement_id:
             column_rule = column_rule.filter(requirement_id__exact=int(requirement_id))
+        if column_name:
+            column_rule = column_rule.filter(column_name__iexact=column_name)
         column_rule = column_rule.order_by('-id').values()
         return self.paging(column_rule, request.query_params, ColumnRuleSerializer)
 

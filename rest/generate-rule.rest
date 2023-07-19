@@ -12,7 +12,7 @@ Content-Type: application/json
 ###
 GET {{baseUrl}}/fills/generateRule
 ?page=1
-&size=4 HTTP/1.1
+&size=16 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
@@ -22,7 +22,7 @@ Authorization: Bearer {{token}}
 ###
 GET {{baseUrl}}/fills/generateRuleParameter
 ?ruleId=4880372080640
-&size=8 HTTP/1.1
+&size=2 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
