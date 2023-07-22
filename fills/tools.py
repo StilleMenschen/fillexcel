@@ -21,10 +21,14 @@ def none_iter():
 
 def random_number_iter(start=1, stop=42, is_decimal=False, ndigits=2):
     if is_decimal:
-        start, stop = float(start), float(stop)
+        start, stop, ndigits = float(start), float(stop), int(ndigits)
+        if stop < start:
+            start, stop = stop, start
         func = functools.partial(_random_decimal, start, stop, ndigits)
     else:
         start, stop = int(start), int(stop)
+        if stop < start:
+            start, stop = stop, start
         func = functools.partial(random.randrange, int(start), int(stop))
     while True:
         yield str(func())
@@ -75,7 +79,7 @@ def _replace_expressions_variable(expressions, value_dict):
 
 
 def _validate_expressions(text):
-    valid = re.compile('^[0-9a-zA-Z-+*/.{}() ]+$')
+    valid = re.compile('^[0-9A-Z-+*/.{}() ]+$')
     if valid.match(text):
         return True
     else:
