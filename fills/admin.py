@@ -27,7 +27,7 @@ class GenerateRuleAdmin(admin.ModelAdmin):
 
 
 class GenerateRuleParameterAdmin(admin.ModelAdmin):
-    list_display = ('rule_id', 'name', 'data_type', 'description', 'required', 'default_value',
+    list_display = ('rule_id', 'name', 'data_type', 'description', 'hints', 'required', 'default_value',
                     'need_outside_data', 'created_at', 'updated_at')
     list_filter = ("rule_id",)
 

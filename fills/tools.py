@@ -42,8 +42,6 @@ def time_serial_iter(repeat=1):
 
 
 def join_string(value_dict, delimiter=' '):
-    if delimiter not in ' -_':
-        raise ValueError("delimiter allow character: [space] - _")
     return delimiter.join(value_dict.values())
 
 

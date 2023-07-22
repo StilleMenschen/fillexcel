@@ -140,8 +140,8 @@ class GenerateRuleParameterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GenerateRuleParameter
-        fields = ('id', 'rule_id', 'name', 'data_type', 'description', 'required', 'default_value', 'need_outside_data',
-                  'created_at', 'updated_at')
+        fields = ('id', 'rule_id', 'name', 'data_type', 'description', 'hints', 'required', 'default_value',
+                  'need_outside_data', 'created_at', 'updated_at')
 
 
 class FileUploadSerializer(serializers.Serializer):

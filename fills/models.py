@@ -77,7 +77,8 @@ class GenerateRuleParameter(IdDateTimeBase):
 
     name = models.CharField('参数名', max_length=255)
     data_type = models.CharField('数据类型', choices=DATA_TYPE, max_length=255)
-    description = models.TextField('描述')
+    description = models.CharField('描述', max_length=512)
+    hints = models.CharField('输入提示', blank=True, max_length=512)
     required = models.BooleanField('是否必填')
     default_value = models.CharField('默认值', blank=True, max_length=255)
     need_outside_data = models.BooleanField('是否需要外部数据')

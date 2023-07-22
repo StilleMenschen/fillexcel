@@ -6,7 +6,7 @@ import typing
 
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
-from django.http import QueryDict, FileResponse
+from django.http import FileResponse
 from django.utils.decorators import method_decorator
 from django.views import generic
 from django.views.decorators.cache import cache_page
@@ -69,10 +69,10 @@ class IndexView(generic.ListView):
 class PagingViewMixin:
 
     @staticmethod
-    def paging(obj, query_params: QueryDict, serializer: typing.Type[Serializer]):
+    def paging(obj, page, size, serializer: typing.Type[Serializer]):
         # 获得查询条件中的翻页参数
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
+        # page = query_params.get('page', default=1)
+        # size = query_params.get('size', default=8)
         # 生成页码记录
         paginator = Paginator(obj, per_page=size)
         # 获取当前页的记录对象
@@ -92,7 +92,7 @@ class PagingViewMixin:
             }
         }
         # 返回JSON响应
-        return Response(response_data)
+        return response_data
 
 
 class FillingRequirementList(APIView, PagingViewMixin):
@@ -102,9 +102,10 @@ class FillingRequirementList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        username = request.query_params.get('username', None)
-        remark = request.query_params.get('remark', None)
-        original_filename = request.query_params.get('original_filename', None)
+        query_params = request.query_params
+        username = query_params.get('username', None)
+        remark = query_params.get('remark', None)
+        original_filename = query_params.get('original_filename', None)
         requirement = FillingRequirement.objects.get_queryset()
         if username:
             requirement = requirement.filter(username__exact=username)
@@ -113,7 +114,10 @@ class FillingRequirementList(APIView, PagingViewMixin):
         if original_filename:
             requirement = requirement.filter(original_filename__contains=original_filename)
         requirement = requirement.order_by('-id').values()
-        return self.paging(requirement, request.query_params, FillingRequirementSerializer)
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.paging(requirement, page, size, FillingRequirementSerializer)
+        return Response(data)
 
     def post(self, request: Request, format=None):
         serializer = FillingRequirementSerializer(data=request.data)
@@ -176,8 +180,9 @@ class ColumnRuleList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        requirement_id = request.query_params.get('requirementId', None)
-        column_name = request.query_params.get('columnName', None)
+        query_params = request.query_params
+        requirement_id = query_params.get('requirementId', None)
+        column_name = query_params.get('columnName', None)
         if not requirement_id:
             raise ValueError('查询列规则必须传需求ID')
         column_rule = ColumnRule.objects.get_queryset()
@@ -186,7 +191,10 @@ class ColumnRuleList(APIView, PagingViewMixin):
         if column_name:
             column_rule = column_rule.filter(column_name__iexact=column_name)
         column_rule = column_rule.order_by('-id').values()
-        return self.paging(column_rule, request.query_params, ColumnRuleSerializer)
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.paging(column_rule, page, size, ColumnRuleSerializer)
+        return Response(data)
 
     def post(self, request: Request, format=None):
         serializer = ColumnRuleSerializer(data=request.data)
@@ -244,12 +252,16 @@ class DataParameterList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        column_rule_id = request.query_params.get('columnRuleId', None)
+        query_params = request.query_params
+        column_rule_id = query_params.get('columnRuleId', None)
         data_parameter = DataParameter.objects.get_queryset()
         if column_rule_id:
             data_parameter = data_parameter.filter(column_rule_id__exact=int(column_rule_id))
         data_parameter = data_parameter.order_by('-id').values()
-        return self.paging(data_parameter, request.query_params, DataParameterSerializer)
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.paging(data_parameter, page, size, DataParameterSerializer)
+        return Response(data)
 
     def post(self, request: Request, format=None):
         serializer = DataParameterSerializer(data=request.data)
@@ -308,7 +320,11 @@ class DataSetList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         data_set = DataSet.objects.order_by('-id').values()
-        return self.paging(data_set, request.query_params, DataSetSerializer)
+        query_params = request.query_params
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.paging(data_set, page, size, DataSetSerializer)
+        return Response(data)
 
     def post(self, request: Request, format=None):
         serializer = DataSetSerializer(data=request.data)
@@ -368,12 +384,16 @@ class DataSetDefineList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        data_set_id = request.query_params.get('dataSetId', None)
+        query_params = request.query_params
+        data_set_id = query_params.get('dataSetId', None)
         data_set_define = DataSetDefine.objects.get_queryset()
         if data_set_id:
             data_set_define = data_set_define.filter(data_set_id__exact=int(data_set_id))
         data_set_define = data_set_define.order_by('-id').values()
-        return self.paging(data_set_define, request.query_params, DataSetDefineSerializer)
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.paging(data_set_define, page, size, DataSetDefineSerializer)
+        return Response(data)
 
     def post(self, request: Request, format=None):
         serializer = DataSetDefineSerializer(data=request.data)
@@ -431,12 +451,16 @@ class DataSetValueList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        data_set_id = request.query_params.get('dataSetId', None)
+        query_params = request.query_params
+        data_set_id = query_params.get('dataSetId', None)
         data_set_value = DataSetValue.objects.get_queryset()
         if data_set_id:
             data_set_value = data_set_value.filter(data_set_id__exact=int(data_set_id))
         data_set_value = data_set_value.order_by('-id').values()
-        return self.paging(data_set_value, request.query_params, DataSetValueSerializer)
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.paging(data_set_value, page, size, DataSetValueSerializer)
+        return Response(data)
 
     def post(self, request: Request, format=None):
         serializer = DataSetValueSerializer(data=request.data)
@@ -494,12 +518,16 @@ class DataSetBindList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        data_set_id = request.query_params.get('dataSetId', None)
+        query_params = request.query_params
+        data_set_id = query_params.get('dataSetId', None)
         data_set_bind = DataSetBind.objects.get_queryset()
         if data_set_id:
             data_set_bind = data_set_bind.filter(data_set_id__exact=int(data_set_id))
         data_set_bind = data_set_bind.order_by('-id').values()
-        return self.paging(data_set_bind, request.query_params, DataSetBindSerializer)
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.paging(data_set_bind, page, size, DataSetBindSerializer)
+        return Response(data)
 
     def post(self, request: Request, format=None):
         serializer = DataSetBindSerializer(data=request.data)
@@ -550,16 +578,23 @@ class DataSetBindDetail(APIView, CacheManager):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class GenerateRuleList(APIView, PagingViewMixin):
+class GenerateRuleList(APIView, PagingViewMixin, CacheManager):
     """
     生成规则: 查询所有
     """
     permission_classes = (permissions.IsAuthenticated,)
+    cache_prefix = 'GenerateRuleList'
 
-    @method_decorator(cache_page(60 * 60 * 2))
     def get(self, request: Request, format=None):
-        generate_rule = GenerateRule.objects.order_by('-id').values()
-        return self.paging(generate_rule, request.query_params, GenerateRuleSerializer)
+        def query():
+            generate_rule = GenerateRule.objects.order_by('-id').values()
+            return self.paging(generate_rule, page, size, GenerateRuleSerializer)
+
+        query_params = request.query_params
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.get_cache(f'{page}of{size}', query)
+        return Response(data)
 
 
 class GenerateRuleDetail(APIView, CacheManager):
@@ -588,22 +623,30 @@ class GenerateRuleDetail(APIView, CacheManager):
         return Response(data)
 
 
-class GenerateRuleParameterList(APIView, PagingViewMixin):
+class GenerateRuleParameterList(APIView, PagingViewMixin, CacheManager):
     """
     生成规则残参数: 查询所有
     """
     permission_classes = (permissions.IsAuthenticated,)
+    cache_prefix = 'GenerateRuleParameterList'
 
-    @method_decorator(cache_page(60 * 60 * 2))
     def get(self, request: Request, format=None):
-        rule_id = request.query_params.get('ruleId', None)
+        query_params = request.query_params
+        rule_id = query_params.get('ruleId', None)
         if rule_id == -1:
             raise ValueError("未传生成规则ID")
         if not GenerateRule.objects.filter(id__exact=rule_id).exists():
             raise ValueError("生成规则数据不存在")
-        generate_rule_parameter = GenerateRuleParameter.objects.filter(
-            rule_id__exact=int(rule_id)).order_by('-id').values()
-        return self.paging(generate_rule_parameter, request.query_params, GenerateRuleParameterSerializer)
+
+        def query():
+            generate_rule_parameter = GenerateRuleParameter.objects.filter(
+                rule_id__exact=int(rule_id)).order_by('-id').values()
+            return self.paging(generate_rule_parameter, page, size, GenerateRuleParameterSerializer)
+
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.get_cache(f'{rule_id}@{page}of{size}', query)
+        return Response(data)
 
 
 class GenerateRuleParameterDetail(APIView, CacheManager):
@@ -682,15 +725,19 @@ class FileRecordList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        requirement_id = request.query_params.get('requirementId', None)
-        username = request.query_params.get('username', None)
+        query_params = request.query_params
+        requirement_id = query_params.get('requirementId', None)
+        username = query_params.get('username', None)
         file_record = FileRecord.objects.get_queryset()
         if requirement_id:
             file_record = file_record.filter(requirement_id__exact=int(requirement_id))
         if username:
             file_record = file_record.filter(username__exact=username)
         file_record = file_record.order_by('-id').values()
-        return self.paging(file_record, request.query_params, FileRecordSerializer)
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
+        data = self.paging(file_record, page, size, FileRecordSerializer)
+        return Response(data)
 
 
 class FileRecordDetail(APIView):
