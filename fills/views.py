@@ -197,7 +197,13 @@ class ColumnRuleList(APIView, PagingViewMixin):
         return Response(data)
 
     def post(self, request: Request, format=None):
-        serializer = ColumnRuleSerializer(data=request.data)
+        # 同一个填充要求中存在列名重复的数据则返回相同的 ID
+        try:
+            saved_column_rule = ColumnRule.objects.get(requirement_id__exact=request.data['requirement_id'],
+                                                       column_name__exact=request.data['column_name'])
+            serializer = ColumnRuleSerializer(saved_column_rule, data=request.data)
+        except ColumnRule.DoesNotExist:
+            serializer = ColumnRuleSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

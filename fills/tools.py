@@ -5,8 +5,8 @@ import random
 import re
 
 
-def fixed_value_iter(value):
-    return itertools.cycle([value])
+def fixed_value_iter(fixed_value):
+    return itertools.cycle([fixed_value])
 
 
 def value_list_iter(values):

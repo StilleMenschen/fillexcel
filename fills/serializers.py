@@ -45,12 +45,6 @@ class ColumnRuleSerializer(serializers.ModelSerializer):
     requirement_id = FillingRequirementRelatedField()
     rule_id = GenerateRuleRelatedField()
 
-    def validate_column_name(self, value):
-        requirement_id = self.initial_data.get('requirement_id', 0)
-        if ColumnRule.objects.filter(requirement_id__exact=requirement_id, column_name__exact=value).exists():
-            raise serializers.ValidationError(f'同一个填充要求里不能有重复的列定义：{value}')
-        return value
-
     class Meta:
         model = ColumnRule
         fields = ('id', 'requirement_id', 'rule_id', 'column_name', 'column_type', 'associated_of', 'created_at',
