@@ -314,7 +314,7 @@ class DataParameterList(APIView, PagingViewMixin):
                     if not ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement_id,
                                                      column_name__iexact=column).exists():
                         raise ValueError(F'传入计算表达式中的关联列 "{column}" 未在此填充规则中定义')
-                # 尝试填入数字 1 进项计算
+                # 尝试填入数字 1 计算
                 try_calculate_expressions(expressions)
             else:
                 raise ValueError('传入表达式不正确')
