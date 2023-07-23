@@ -276,9 +276,17 @@ class DataParameterList(APIView, PagingViewMixin):
             self.validate_parameter_related_columns(data_param)
         serializer = DataParameterSerializer(data=request.data, many=True)
         if serializer.is_valid():
+            # 删除旧的数据
+            self.remove_data_parameter(serializer.data[0]['column_rule_id'])
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    def remove_data_parameter(column_rule_id):
+        old_data_parameter = DataParameter.objects.filter(column_rule_id__exact=column_rule_id)
+        if old_data_parameter.exists():
+            old_data_parameter.delete()
 
     @staticmethod
     def validate_parameter_related_columns(data_param):
