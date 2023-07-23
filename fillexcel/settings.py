@@ -172,6 +172,7 @@ LOGGING = {
             'class': 'logging.handlers.RotatingFileHandler',  # 滚动生成日志，切割
             'filename': LOG_DIR / 'django.log',  # 日志文件名
             'maxBytes': 1024 * 1024 * 8,  # 单个日志文件最大为8M
+            'delay': True,  # 由于 Django 是双进程运行，滚动日志文件可能存在权限问题，比如打开中的文件不能被重命名
             'backupCount': 7,  # 日志备份文件最大数量
             'formatter': 'simple',  # 简单格式
             'encoding': 'utf-8'  # 防止中文乱码
@@ -181,6 +182,7 @@ LOGGING = {
             'class': 'logging.handlers.RotatingFileHandler',  # 滚动生成日志，切割
             'filename': LOG_DIR / 'django-sql.log',  # 日志文件名
             'maxBytes': 1024 * 1024 * 8,  # 单个日志文件最大为8M
+            'delay': True,  # 由于 Django 是双进程运行，滚动日志文件可能存在权限问题，比如打开中的文件不能被重命名
             'backupCount': 7,  # 日志备份文件最大数量
             'formatter': 'simple',  # 简单格式
             'encoding': 'utf-8'  # 防止中文乱码
