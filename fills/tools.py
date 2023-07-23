@@ -45,8 +45,8 @@ def time_serial_iter(repeat=1):
             yield s
 
 
-def join_string(value_dict, delimiter=' '):
-    return delimiter.join(value_dict.values())
+def join_string(columns, value_dict, delimiter=' '):
+    return delimiter.join((value_dict[col] for col in columns))
 
 
 def calculate_expressions(expressions, value_dict):

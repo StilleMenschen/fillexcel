@@ -1,9 +1,9 @@
 import datetime
 import io
 import logging
+import re
 import time
 import typing
-import re
 
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
@@ -26,8 +26,8 @@ from .serializers import GenerateRuleSerializer, GenerateRuleParameterSerializer
 from .serializers import UserSerializer
 from .service import fill_excel
 from .storage import Storage
-from .tools import validate_expressions
 from .tools import try_calculate_expressions
+from .tools import validate_expressions
 
 log = logging.getLogger(__name__)
 
@@ -198,13 +198,12 @@ class ColumnRuleList(APIView, PagingViewMixin):
         return Response(data)
 
     def post(self, request: Request, format=None):
-        # 同一个填充要求中存在列名重复的数据则返回相同的 ID
-        try:
-            saved_column_rule = ColumnRule.objects.get(requirement_id__exact=request.data['requirement_id'],
-                                                       column_name__exact=request.data['column_name'])
-            serializer = ColumnRuleSerializer(saved_column_rule, data=request.data)
-        except ColumnRule.DoesNotExist:
-            serializer = ColumnRuleSerializer(data=request.data)
+        # 同一个填充要求中存在列名重复判断
+        column_name = request.data['column_name']
+        if ColumnRule.objects.filter(requirement_id__exact=request.data['requirement_id'],
+                                     column_name__exact=column_name).exists():
+            raise ValueError(f'新增的列名 "{column_name}" 已经存在')
+        serializer = ColumnRuleSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -237,6 +236,11 @@ class ColumnRuleDetail(APIView, CacheManager):
         return Response(data)
 
     def put(self, request, pk):
+        # 同一个填充要求中存在列名重复判断
+        column_name = request.data['column_name']
+        if ColumnRule.objects.exclude(id__exact=pk).filter(requirement_id__exact=request.data['requirement_id'],
+                                                           column_name__exact=column_name).exists():
+            raise ValueError(f'修改后的列名 "{column_name}" 已经存在')
         column_rule = self.get_object(pk)
         serializer = ColumnRuleSerializer(column_rule, data=request.data)
         if serializer.is_valid():
@@ -288,8 +292,7 @@ class DataParameterList(APIView, PagingViewMixin):
         if old_data_parameter.exists():
             old_data_parameter.delete()
 
-    @staticmethod
-    def validate_parameter_related_columns(data_param):
+    def validate_parameter_related_columns(self, data_param):
         gen_rule_param_id, column_rule_id = data_param['param_rule_id'], data_param['column_rule_id']
         param = GenerateRuleParameter.get_with_cache(gen_rule_param_id)
         gen_rule = GenerateRule.get_with_cache(param.rule_id)
@@ -303,11 +306,7 @@ class DataParameterList(APIView, PagingViewMixin):
             column_rule = ColumnRule.get_with_cache(column_rule_id)
             # 单元格列必须存在
             for column in iter(columns.split(',')):
-                if column == column_rule.column_name:
-                    raise ValueError(f'关联的列不能包含自身 "{column}"')
-                if not ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement_id,
-                                                 column_name__iexact=column).exists():
-                    raise ValueError(f'传入的关联列 "{column}" 未在此填充规则中定义')
+                self.validate_column(column_rule, column)
         # 单元格列值计算必须都是有配置的列
         if rule_func_name == 'calculate_expressions' and param.name == 'expressions':
             expressions: str = data_param['value']
@@ -317,15 +316,22 @@ class DataParameterList(APIView, PagingViewMixin):
                 # 单元格列必须存在
                 for match in pattern.finditer(expressions):
                     column = match.group(1)
-                    if column == column_rule.column_name:
-                        raise ValueError(f'关联的列不能包含自身 "{column}"')
-                    if not ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement_id,
-                                                     column_name__iexact=column).exists():
-                        raise ValueError(F'传入计算表达式中的关联列 "{column}" 未在此填充规则中定义')
+                    self.validate_column(column_rule, column)
                 # 尝试填入数字 1 计算
                 try_calculate_expressions(expressions)
             else:
                 raise ValueError('传入表达式不正确')
+
+    @staticmethod
+    def validate_column(column_rule, column_name):
+        if column_name == column_rule.column_name:
+            raise ValueError(f'关联的列不能包含自身 "{column_name}"')
+        column_filter = ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement_id,
+                                                  column_name__iexact=column_name)
+        if not column_filter.exists():
+            raise ValueError(f'传入的关联列 "{column_name}" 未在此填充规则中定义')
+        if column_filter.filter(associated_of__exact=True).exists():
+            raise ValueError(f'传入的关联列 "{column_name}" 不能为关联填充类型，如列值拼接、表达式计算')
 
 
 class DataParameterDetail(APIView, CacheManager):

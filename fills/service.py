@@ -105,20 +105,15 @@ def write_join_string(column_rule: ColumnRule, rule: GenerateRule,
     log.info('function: ' + rule.function_name)
     log.info('delimiter: ' + delimiter)
     log.info('columns: ' + str(columns))
-    # 按顺序过滤获得需要取值的列
-    filtered_column_data = collections.OrderedDict()
-    for c in columns:
-        if c in column_data:
-            filtered_column_data[c] = column_data[c]
     count = 0
     data_list = []
-    # 过滤需要连接的列值
     # 逐行执行
     for _ in range(start_line, end_line):
         # 取出当前行的所需列值
-        value_dict = dict(((key, values[count]) for key, values in filtered_column_data.items()))
+        value_dict = dict(((key, values[count]) for key, values in column_data.items()))
         # 添加连接值到数据列表
-        data_list.append(join_string(value_dict, delimiter))
+        s = join_string(columns, value_dict, delimiter)
+        data_list.append(s)
         count += 1
     # 填入数据
     column_data[column_rule.column_name] = data_list
