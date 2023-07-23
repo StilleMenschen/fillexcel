@@ -3,13 +3,12 @@ import io
 import logging
 import time
 import typing
+import re
 
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.http import FileResponse
-from django.utils.decorators import method_decorator
 from django.views import generic
-from django.views.decorators.cache import cache_page
 from rest_framework import permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.request import Request
@@ -27,6 +26,8 @@ from .serializers import GenerateRuleSerializer, GenerateRuleParameterSerializer
 from .serializers import UserSerializer
 from .service import fill_excel
 from .storage import Storage
+from .tools import validate_expressions
+from .tools import try_calculate_expressions
 
 log = logging.getLogger(__name__)
 
@@ -270,11 +271,53 @@ class DataParameterList(APIView, PagingViewMixin):
         return Response(data)
 
     def post(self, request: Request, format=None):
-        serializer = DataParameterSerializer(data=request.data)
+        # 部分规则参数必要校验
+        for data_param in request.data:
+            self.validate_parameter_related_columns(data_param)
+        serializer = DataParameterSerializer(data=request.data, many=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    def validate_parameter_related_columns(data_param):
+        gen_rule_param_id, column_rule_id = data_param['param_rule_id'], data_param['column_rule_id']
+        param = GenerateRuleParameter.get_with_cache(gen_rule_param_id)
+        gen_rule = GenerateRule.get_with_cache(param.rule_id)
+        rule_func_name = gen_rule.function_name
+        # 单元格列值连接必须都是有配置的列
+        if rule_func_name == 'join_string' and param.name == 'columns':
+            pattern = re.compile(r'^[A-Z]+(,[A-Z]+)*$')
+            if not pattern.match(data_param['value']):
+                raise ValueError('传入关联的列数据不正确，必须是以英文逗号拼接的列名')
+            columns: str = data_param['value']
+            column_rule = ColumnRule.get_with_cache(column_rule_id)
+            # 单元格列必须存在
+            for column in iter(columns.split(',')):
+                if column == column_rule.column_name:
+                    raise ValueError(f'关联的列不能包含自身 "{column}"')
+                if not ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement_id,
+                                                 column_name__iexact=column).exists():
+                    raise ValueError(f'传入的关联列 "{column}" 未在此填充规则中定义')
+        # 单元格列值计算必须都是有配置的列
+        if rule_func_name == 'calculate_expressions' and param.name == 'expressions':
+            expressions: str = data_param['value']
+            if validate_expressions(expressions):
+                pattern = re.compile(r"\{([A-Z]+)\}")
+                column_rule = ColumnRule.get_with_cache(column_rule_id)
+                # 单元格列必须存在
+                for match in pattern.finditer(expressions):
+                    column = match.group(1)
+                    if column == column_rule.column_name:
+                        raise ValueError(f'关联的列不能包含自身 "{column}"')
+                    if not ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement_id,
+                                                     column_name__iexact=column).exists():
+                        raise ValueError(F'传入计算表达式中的关联列 "{column}" 未在此填充规则中定义')
+                # 尝试填入数字 1 进项计算
+                try_calculate_expressions(expressions)
+            else:
+                raise ValueError('传入表达式不正确')
 
 
 class DataParameterDetail(APIView, CacheManager):

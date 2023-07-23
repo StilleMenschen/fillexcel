@@ -50,7 +50,7 @@ def join_string(value_dict, delimiter=' '):
 
 
 def calculate_expressions(expressions, value_dict):
-    if str(expressions) and not _validate_expressions(expressions):
+    if str(expressions) and not validate_expressions(expressions):
         raise ValueError('expressions is invalid, allow character: 0-9 a-z A-Z +-*/. [space] {} ()')
     if isinstance(value_dict, dict) and not len(value_dict):
         return None
@@ -78,7 +78,21 @@ def _replace_expressions_variable(expressions, value_dict):
     return pattern.sub(inner_data_get, expressions)
 
 
-def _validate_expressions(text):
+def try_calculate_expressions(expressions):
+    pattern = re.compile(r"\{([A-Z]+)\}")
+
+    def inner_data_get(_):
+        return '1'
+
+    expressions = pattern.sub(inner_data_get, expressions)
+
+    try:
+        eval(expressions)
+    except Exception:
+        raise ValueError('表达式计算验证失败')
+
+
+def validate_expressions(text):
     valid = re.compile('^[0-9A-Z-+*/.{}() ]+$')
     if valid.match(text):
         return True

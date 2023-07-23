@@ -1,9 +1,10 @@
 django==4.1
 psycopg2==2.9.6
 xlwings==0.29.1
-celery==5.1.2
-eventlet==0.33.1
-redis==3.5.3
+celery==5.3.1
+eventlet==0.33.3
+cryptography==41.0.2
+redis==4.6.0
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 certifi==2023.5.7

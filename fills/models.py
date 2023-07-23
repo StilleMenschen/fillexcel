@@ -1,7 +1,9 @@
 import reprlib
+import datetime
 
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.db import models
+from django.core.cache import cache
 
 from .utils import SnowFlake
 
@@ -63,6 +65,16 @@ class GenerateRule(IdDateTimeBase):
     fill_order = models.PositiveIntegerField('填入顺序')
     description = models.TextField('功能描述')
 
+    @classmethod
+    def get_with_cache(cls, pk):
+        cache_key = f'GenerateRule:{pk}'
+        obj = cache.get(cache_key)
+        if not obj:
+            obj = cls.objects.get(pk=pk)
+            # 4 小时缓存数
+            cache.set(cache_key, obj, datetime.timedelta(hours=4).total_seconds())
+        return obj
+
     class Meta:
         db_table = 'generate_rule'
         verbose_name = '生成规则'
@@ -82,6 +94,16 @@ class GenerateRuleParameter(IdDateTimeBase):
     required = models.BooleanField('是否必填')
     default_value = models.CharField('默认值', blank=True, max_length=255)
     need_outside_data = models.BooleanField('是否需要外部数据')
+
+    @classmethod
+    def get_with_cache(cls, pk):
+        cache_key = f'GenerateRuleParameter:{pk}'
+        obj = cache.get(cache_key)
+        if not obj:
+            obj = cls.objects.get(pk=pk)
+            # 4 小时缓存数
+            cache.set(cache_key, obj, datetime.timedelta(hours=4).total_seconds())
+        return obj
 
     class Meta:
         db_table = 'generate_rule_parameter'
@@ -160,6 +182,16 @@ class ColumnRule(IdDateTimeBase):
         RegexValidator(regex=r'^[A-Z]+$', message='单元格名称必须是大写英文字母'),))
     column_type = models.CharField('单元格数据类型', choices=DATA_TYPE, max_length=64)
     associated_of = models.BooleanField('是否需要外部数据集', default=False)
+
+    @classmethod
+    def get_with_cache(cls, pk):
+        cache_key = f'ColumnRule:{pk}'
+        obj = cache.get(cache_key)
+        if not obj:
+            obj = cls.objects.get(pk=pk)
+            # 4 小时缓存数
+            cache.set(cache_key, obj, datetime.timedelta(hours=4).total_seconds())
+        return obj
 
     class Meta:
         db_table = 'column_rule'
