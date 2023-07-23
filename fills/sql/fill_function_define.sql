@@ -5,8 +5,8 @@ INSERT INTO public.generate_rule (id,created_at,updated_at,rule_name,function_na
 	 (4884580073472,'2023-06-28 21:37:42.216547+08','2023-06-28 21:41:00.693467+08','associated_fill','associated_fill',2,'特定数据集'),
 	 (4878393573376,'2023-06-28 21:25:07.029875+08','2023-06-28 21:41:14.549457+08','fixed_value_iter','fixed_value_iter',1,'单个固定数据'),
 	 (4880372080640,'2023-06-28 21:29:08.54572+08','2023-06-28 21:41:25.183687+08','random_number_iter','random_number_iter',1,'范围随机数值'),
-	 (4897600479232,'2023-06-28 22:04:11.622607+08','2023-06-28 22:04:11.622607+08','calculate_expressions','calculate_expressions',3,'数值计算'),
-	 (4898068365312,'2023-06-28 22:05:08.737051+08','2023-06-28 22:05:08.737051+08','join_string','join_string',4,'固定字符拼接多个值');
+	 (4897600479232,'2023-06-28 22:04:11.622607+08','2023-06-28 22:04:11.622607+08','calculate_expressions','calculate_expressions',3,'表达式计算'),
+	 (4898068365312,'2023-06-28 22:05:08.737051+08','2023-06-28 22:05:08.737051+08','join_string','join_string',4,'固定字符拼接列值');
 
 INSERT INTO public.generate_rule_parameter (id,created_at,updated_at,"name",data_type,description,required,default_value,need_outside_data,rule_id,hints) VALUES
 	 (7359642402816,'2023-07-02 09:33:13.877037+08','2023-07-22 10:50:38.592065+08','columns','string','连接的列值',true,'',false,4898068365312,'英文逗号分隔的列名，如：A,F,AC'),

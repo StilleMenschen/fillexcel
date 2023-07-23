@@ -326,12 +326,12 @@ class DataParameterList(APIView, PagingViewMixin):
     def validate_column(column_rule, column_name):
         if column_name == column_rule.column_name:
             raise ValueError(f'关联的列不能包含自身 "{column_name}"')
-        column_filter = ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement_id,
-                                                  column_name__iexact=column_name)
-        if not column_filter.exists():
+        if not ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement_id,
+                                         column_name__iexact=column_name).exists():
             raise ValueError(f'传入的关联列 "{column_name}" 未在此填充规则中定义')
-        if column_filter.filter(associated_of__exact=True).exists():
-            raise ValueError(f'传入的关联列 "{column_name}" 不能为关联填充类型，如列值拼接、表达式计算')
+        generate_rule = GenerateRule.get_with_cache(column_rule.rule_id)
+        if generate_rule.function_name in {'join_string', 'calculate_expressions'}:
+            raise ValueError(f'传入的关联列 "{column_name}" 的生成规则不能为列值拼接、表达式计算')
 
 
 class DataParameterDetail(APIView, CacheManager):
