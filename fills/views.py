@@ -303,7 +303,7 @@ class DataParameterList(APIView, PagingViewMixin):
             if not pattern.match(data_param['value']):
                 raise ValueError('传入关联的列数据不正确，必须是以英文逗号拼接的列名')
             columns: str = data_param['value']
-            column_rule = ColumnRule.get_with_cache(column_rule_id)
+            column_rule = ColumnRule.objects.get(pk=column_rule_id)
             # 单元格列必须存在
             for column in iter(columns.split(',')):
                 self.validate_column(column_rule, column)

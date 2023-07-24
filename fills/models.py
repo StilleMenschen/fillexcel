@@ -1,9 +1,9 @@
-import reprlib
 import datetime
+import reprlib
 
+from django.core.cache import cache
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.db import models
-from django.core.cache import cache
 
 from .utils import SnowFlake
 
@@ -192,6 +192,13 @@ class ColumnRule(IdDateTimeBase):
             # 4 小时缓存数
             cache.set(cache_key, obj, datetime.timedelta(hours=4).total_seconds())
         return obj
+
+    @classmethod
+    def remove_cache(cls, pk):
+        cache_key = f'ColumnRule:{pk}'
+        val = cache.get(cache_key, None)
+        if val:
+            cache.delete(cache_key)
 
     class Meta:
         db_table = 'column_rule'
