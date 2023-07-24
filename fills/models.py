@@ -4,6 +4,7 @@ import reprlib
 from django.core.cache import cache
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.db import models
+from django.db.models import UniqueConstraint
 
 from .utils import SnowFlake
 
@@ -40,7 +41,7 @@ class IdDateTimeBase(models.Model):
 class FillingRequirement(IdDateTimeBase):
     username = models.CharField('用户名', max_length=255)
     remark = models.TextField('备注', blank=True)
-    file_id = models.CharField('对象存储ID', max_length=255)
+    file_id = models.CharField('对象存储ID', unique=True, max_length=255)
     original_filename = models.CharField('原始文件名', max_length=255, validators=(
         RegexValidator(regex=r'.xlsx$', message='必须为.xlsx格式的excel文件'),))
     start_line = models.PositiveIntegerField('起始行', validators=(
@@ -60,8 +61,8 @@ class FillingRequirement(IdDateTimeBase):
 
 
 class GenerateRule(IdDateTimeBase):
-    rule_name = models.CharField('规则名', max_length=128)
-    function_name = models.CharField('函数名', max_length=255)
+    rule_name = models.CharField('规则名', unique=True, max_length=128)
+    function_name = models.CharField('函数名', unique=True, max_length=255)
     fill_order = models.PositiveIntegerField('填入顺序')
     description = models.TextField('功能描述')
 
@@ -109,6 +110,7 @@ class GenerateRuleParameter(IdDateTimeBase):
         db_table = 'generate_rule_parameter'
         verbose_name = '生成规则参数'
         verbose_name_plural = verbose_name
+        constraints = (UniqueConstraint(fields=('rule_id', 'name'), name='unique_param_name'),)
 
     def __str__(self):
         return f'<[{self.name}] {self.data_type} {self.description}>'
@@ -139,6 +141,7 @@ class DataSetDefine(IdDateTimeBase):
         db_table = 'data_set_define'
         verbose_name = '数据集定义'
         verbose_name_plural = verbose_name
+        constraints = (UniqueConstraint(fields=('data_set_id', 'name'), name='unique_data_attr_name'),)
 
     def __str__(self):
         return f'<[{self.name}] {self.data_type}>'
@@ -169,6 +172,7 @@ class DataSetBind(IdDateTimeBase):
         db_table = 'data_set_bind'
         verbose_name = '数据集绑定列'
         verbose_name_plural = verbose_name
+        constraints = (UniqueConstraint(fields=('column_name', 'data_name'), name='unique_data_attr_bind'),)
 
     def __str__(self):
         return f'<[{self.__class__.__name__}] {self.data_name} = {self.column_name}>'
@@ -204,6 +208,7 @@ class ColumnRule(IdDateTimeBase):
         db_table = 'column_rule'
         verbose_name = '列规则'
         verbose_name_plural = verbose_name
+        constraints = (UniqueConstraint(fields=('requirement_id', 'column_name'), name='unique_column_name'),)
 
     def __str__(self):
         return f"<[{self.column_name}] {self.column_type} - {self.rule_id}>"
@@ -229,7 +234,7 @@ class DataParameter(IdDateTimeBase):
 class FileRecord(IdDateTimeBase):
     requirement_id = models.BigIntegerField('关联填充要求')
     username = models.CharField('用户名', max_length=255)
-    file_id = models.CharField('对象存储ID', max_length=255)
+    file_id = models.CharField('对象存储ID', unique=True, max_length=255)
     filename = models.CharField('原始文件名', max_length=255)
 
     class Meta:
