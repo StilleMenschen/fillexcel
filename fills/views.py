@@ -7,6 +7,7 @@ import typing
 
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
+from django.core.cache import cache
 from django.http import FileResponse
 from django.views import generic
 from rest_framework import permissions, status
@@ -746,16 +747,25 @@ class GeneratesView(APIView):
 
     @staticmethod
     def generates(req_id: int):
+
+        limit_cache_key = 'GeneratesView:GenerateLimit'
+        request_count = cache.get(limit_cache_key, 0)
+
+        if request_count >= 42:
+            raise ValueError('您的操作频率太快，请稍后再试！')
+
+        cache.set(limit_cache_key, request_count + 1, datetime.timedelta(minutes=1).total_seconds())
+
         t0 = time.perf_counter()
         fr = FillingRequirement.objects.get(pk=req_id)
         fill_excel(fr)
         took = time.perf_counter() - t0
         return Response(dict(requirement=req_id, took=took))
 
-    def get(self, request: Request, requirement_id=None):
+    def get(self, request: Request, requirement_id: int):
         return self.generates(requirement_id)
 
-    def post(self, request: Request, requirement_id=None):
+    def post(self, request: Request, requirement_id: int):
         return self.generates(requirement_id)
 
 
@@ -817,6 +827,15 @@ class FileRecordDetail(APIView):
             raise ValueError('未查询到对应数据')
 
     def get(self, request, pk):
+
+        limit_cache_key = 'FileRecordDetail:DownloadLimit'
+        request_count = cache.get(limit_cache_key, 0)
+
+        if request_count >= 30:
+            raise ValueError('您的操作频率太快，请稍后再试！')
+
+        cache.set(limit_cache_key, request_count + 1, datetime.timedelta(minutes=1).total_seconds())
+
         file_record = self.get_object(pk)
         try:
             storage = Storage(retry=0)
