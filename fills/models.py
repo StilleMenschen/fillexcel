@@ -1,4 +1,3 @@
-import datetime
 import reprlib
 
 from django.core.cache import cache
@@ -6,6 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator, RegexVa
 from django.db import models
 from django.db.models import UniqueConstraint
 
+from .timeunit import dc
 from .utils import SnowFlake
 
 DATA_TYPE = (
@@ -73,7 +73,7 @@ class GenerateRule(IdDateTimeBase):
         if not obj:
             obj = cls.objects.get(pk=pk)
             # 4 小时缓存数
-            cache.set(cache_key, obj, datetime.timedelta(hours=4).total_seconds())
+            cache.set(cache_key, obj, dc.hours.to_seconds(4))
         return obj
 
     class Meta:
@@ -103,7 +103,7 @@ class GenerateRuleParameter(IdDateTimeBase):
         if not obj:
             obj = cls.objects.get(pk=pk)
             # 4 小时缓存数
-            cache.set(cache_key, obj, datetime.timedelta(hours=4).total_seconds())
+            cache.set(cache_key, obj, dc.hours.to_seconds(4))
         return obj
 
     class Meta:
@@ -194,7 +194,7 @@ class ColumnRule(IdDateTimeBase):
         if not obj:
             obj = cls.objects.get(pk=pk)
             # 4 小时缓存数
-            cache.set(cache_key, obj, datetime.timedelta(hours=4).total_seconds())
+            cache.set(cache_key, obj, dc.hours.to_seconds(4))
         return obj
 
     @classmethod

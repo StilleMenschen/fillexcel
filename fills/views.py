@@ -28,6 +28,7 @@ from .serializers import GenerateRuleSerializer, GenerateRuleParameterSerializer
 from .serializers import UserSerializer
 from .service import fill_excel
 from .storage import Storage
+from .timeunit import dc
 from .tools import try_calculate_expressions
 from .tools import validate_expressions
 
@@ -314,7 +315,7 @@ class DataParameterList(APIView, PagingViewMixin):
             expressions: str = data_param['value']
             if validate_expressions(expressions):
                 pattern = re.compile(r"\{([A-Z]+)\}")
-                column_rule = ColumnRule.get_with_cache(column_rule_id)
+                column_rule = ColumnRule.objects.get(pk=column_rule_id)
                 # 单元格列必须存在
                 for match in pattern.finditer(expressions):
                     column = match.group(1)
@@ -331,6 +332,8 @@ class DataParameterList(APIView, PagingViewMixin):
         if not ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement.id,
                                          column_name__iexact=column_name).exists():
             raise ValueError(f'传入的关联列 "{column_name}" 未在此填充规则中定义')
+        column_rule = ColumnRule.objects.get(requirement_id__exact=column_rule.requirement.id,
+                                             column_name__iexact=column_name)
         generate_rule = GenerateRule.get_with_cache(column_rule.rule.id)
         if generate_rule.function_name in {'join_string', 'calculate_expressions'}:
             raise ValueError(f'传入的关联列 "{column_name}" 的生成规则不能为列值拼接、表达式计算')
@@ -758,7 +761,7 @@ class GeneratesView(APIView):
         if request_count >= 42:
             raise ValueError('您的操作频率太快，请稍后再试！')
 
-        cache.set(limit_cache_key, request_count + 1, datetime.timedelta(minutes=1).total_seconds())
+        cache.set(limit_cache_key, request_count + 1, dc.minutes.to_seconds(1))
 
         t0 = time.perf_counter()
         fr = FillingRequirement.objects.get(pk=req_id)
@@ -843,7 +846,7 @@ class FileRecordDetail(APIView):
         if request_count >= 30:
             raise ValueError('您的操作频率太快，请稍后再试！')
 
-        cache.set(limit_cache_key, request_count + 1, datetime.timedelta(minutes=1).total_seconds())
+        cache.set(limit_cache_key, request_count + 1, dc.minutes.to_seconds(1))
 
         file_record = self.get_object(pk)
         try:
@@ -859,10 +862,10 @@ class FileRecordDetail(APIView):
 
     def delete(self, request, pk):
         file_record = self.get_object(pk)
+        file_record.delete()
         try:
             storage = Storage(retry=0)
             storage.remove_object(file_record.file_id)
         except Exception:
             log.error('生成记录的文件删除出错')
-        file_record.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
