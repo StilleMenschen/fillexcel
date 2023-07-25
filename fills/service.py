@@ -1,4 +1,3 @@
-import collections
 import json
 import logging
 import operator
@@ -151,13 +150,13 @@ def match_normal_iter(column_rule: ColumnRule, rule: GenerateRule):
     return none_iter()
 
 
-def fill_excel(fr: FillingRequirement):
+def fill_excel(fr: FillingRequirement, hash_id):
     column_rule_list = ColumnRule.objects.filter(requirement_id__exact=fr.id)
     if not len(column_rule_list):
         raise ValueError('没有定义列填充规则，请先定义规则')
     # 按定义的顺序填充, 需要关联其它数据的放在后面处理, 先处理固定值的
     column_rule_list: list[ColumnRule] = sorted(column_rule_list, key=operator.attrgetter('rule.fill_order'))
-    fill_data = {'requirementId': fr.id, 'fileId': fr.file_id, 'username': fr.username,
+    fill_data = {'requirementId': fr.id, 'fileId': fr.file_id, 'username': fr.username, 'hashId': hash_id,
                  'filename': fr.original_filename, 'startLine': fr.start_line, 'data': {}}
     column_data = fill_data['data']
     # 生成数据

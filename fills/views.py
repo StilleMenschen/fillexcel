@@ -4,10 +4,11 @@ import logging
 import re
 import time
 import typing
+import uuid
 
 from django.contrib.auth.models import User
-from django.core.paginator import Paginator
 from django.core.cache import cache
+from django.core.paginator import Paginator
 from django.http import FileResponse
 from django.views import generic
 from rest_framework import permissions, status
@@ -747,7 +748,6 @@ class GeneratesView(APIView):
 
     @staticmethod
     def generates(req_id: int):
-
         limit_cache_key = 'GeneratesView:GenerateLimit'
         request_count = cache.get(limit_cache_key, 0)
 
@@ -758,9 +758,10 @@ class GeneratesView(APIView):
 
         t0 = time.perf_counter()
         fr = FillingRequirement.objects.get(pk=req_id)
-        fill_excel(fr)
+        hash_id = uuid.uuid1().hex
+        fill_excel(fr, hash_id)
         took = time.perf_counter() - t0
-        return Response(dict(requirement=req_id, took=took))
+        return Response(dict(requirement=req_id, fileId=hash_id, took=took))
 
     def get(self, request: Request, requirement_id: int):
         return self.generates(requirement_id)
@@ -781,8 +782,9 @@ class FileUploadView(APIView):
             file = serializer.validated_data['file']
             try:
                 storage = Storage(retry=0)
-                hash_id = storage.store_object(file.file, file.size, 'requirement',
-                                               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                hash_id = uuid.uuid1().hex
+                storage.store_object(hash_id, file.file, file.size, folder='requirement',
+                                     content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 return Response(dict(fileId=hash_id, createdAt=datetime.datetime.now()), status=status.HTTP_201_CREATED)
             except Exception as e:
                 log.error('上传文件异常' + str(e))
@@ -801,11 +803,14 @@ class FileRecordList(APIView, PagingViewMixin):
         query_params = request.query_params
         requirement_id = query_params.get('requirementId', None)
         username = query_params.get('username', None)
+        filename = query_params.get('filename', None)
         file_record = FileRecord.objects.get_queryset()
         if requirement_id:
             file_record = file_record.filter(requirement_id__exact=int(requirement_id))
         if username:
             file_record = file_record.filter(username__exact=username)
+        if filename:
+            file_record = file_record.filter(filename__contains=filename)
         file_record = file_record.order_by('-id').values()
         page = query_params.get('page', default=1)
         size = query_params.get('size', default=8)
@@ -850,5 +855,10 @@ class FileRecordDetail(APIView):
 
     def delete(self, request, pk):
         file_record = self.get_object(pk)
+        try:
+            storage = Storage(retry=0)
+            storage.remove_object(file_record.file_id)
+        except Exception:
+            log.error('生成记录的文件删除出错')
         file_record.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

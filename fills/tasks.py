@@ -51,15 +51,15 @@ def write_to_excel(data_for_fill: dict):
     del data_for_fill['data']
     try:
         # 上传写入后的文件
-        file_id = storge.store_object_for_path(
-            save_path, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        storge.store_object_for_path(data_for_fill['hashId'], save_path,
+                                     content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     except Exception as e:
         log.error(str(e))
         return False
     finally:
         tempdir.cleanup()
     # 文件生成记录
-    save_record(data_for_fill['requirementId'], data_for_fill['username'], file_id, filename)
+    save_record(data_for_fill['requirementId'], data_for_fill['username'], data_for_fill['hashId'], filename)
     del data_for_fill
     log.info(f'elapsed time {time.perf_counter() - t0}')
     return filename
@@ -77,7 +77,7 @@ def save_record(requirement_id, username, file_id, filename):
         connection = psycopg2.connect(**read_postgres_config())
         cursor = connection.cursor()
         # Executing a SQL query to insert data into table
-        insert_query = f"""insert into public.file_record 
+        insert_query = f"""insert into public.file_record
         (id, created_at, updated_at, username, file_id, filename, requirement_id)
         values ({SnowFlake(0, 0).next_id()}, now(), now(), '{username}', '{file_id}', '{filename}', {requirement_id})
         """

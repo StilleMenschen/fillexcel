@@ -48,9 +48,8 @@ class Storage:
             self.client.make_bucket(self.bucket)
             print(f"Bucket '{self.bucket}' created")
 
-    def store_object_for_path(self, file_path, folder=None, content_type=None):
+    def store_object_for_path(self, hash_id, file_path, folder=None, content_type=None):
         p = convert_path(file_path)
-        hash_id = uuid.uuid1().hex
         if folder:
             filename = f'{folder}/{hash_id}'
         else:
@@ -63,8 +62,7 @@ class Storage:
         log.info(f'save object {file_path} to {filename}, etag {obj.etag}')
         return filename
 
-    def store_object(self, file, size, folder=None, content_type=None):
-        hash_id = uuid.uuid1().hex
+    def store_object(self, hash_id, file, size, folder=None, content_type=None):
         if folder:
             filename = f'{folder}/{hash_id}'
         else:
