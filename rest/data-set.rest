@@ -12,7 +12,8 @@ Content-Type: application/json
 
 ###
 GET {{baseUrl}}/fills/dataSet
-?size=8 HTTP/1.1
+?username=jack
+&size=8 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###

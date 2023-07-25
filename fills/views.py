@@ -384,10 +384,14 @@ class DataSetList(APIView, PagingViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request: Request, format=None):
-        data_set = DataSet.objects.order_by('-id').values()
         query_params = request.query_params
+        username = query_params.get('username', default=None)
+        data_set = DataSet.objects.get_queryset()
+        if username:
+            data_set = data_set.filter(username__exact=username)
         page = query_params.get('page', default=1)
         size = query_params.get('size', default=8)
+        data_set.order_by('-id').values()
         data = self.paging(data_set, page, size, DataSetSerializer)
         return Response(data)
 
