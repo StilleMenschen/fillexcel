@@ -9,7 +9,7 @@ import uuid
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.http import FileResponse
+from django.http import FileResponse, QueryDict
 from django.views import generic
 from rest_framework import permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -73,10 +73,19 @@ class IndexView(generic.ListView):
 class PagingViewMixin:
 
     @staticmethod
-    def paging(obj, page, size, serializer: typing.Type[Serializer]):
+    def resolve_query_params(query_params: QueryDict, params: tuple[tuple[str, str], ...]):
+        query = dict()
+        for q, p in params:
+            val = query_params.get(p, None)
+            if val:
+                query[q] = val
+        return query
+
+    @staticmethod
+    def paging(obj, query_params: QueryDict, serializer: typing.Type[Serializer]):
         # 获得查询条件中的翻页参数
-        # page = query_params.get('page', default=1)
-        # size = query_params.get('size', default=8)
+        page = query_params.get('page', default=1)
+        size = query_params.get('size', default=8)
         # 生成页码记录
         paginator = Paginator(obj, per_page=size)
         # 获取当前页的记录对象
@@ -107,20 +116,13 @@ class FillingRequirementList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        username = query_params.get('username', None)
-        remark = query_params.get('remark', None)
-        original_filename = query_params.get('original_filename', None)
-        requirement = FillingRequirement.objects.get_queryset()
-        if username:
-            requirement = requirement.filter(username__exact=username)
-        if remark:
-            requirement = requirement.filter(remark__contains=remark)
-        if original_filename:
-            requirement = requirement.filter(original_filename__contains=original_filename)
-        requirement = requirement.order_by('-id').values()
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
-        data = self.paging(requirement, page, size, FillingRequirementSerializer)
+        query = self.resolve_query_params(query_params, (
+            ('username__exact', 'username'),
+            ('remark__contains', 'remark'),
+            ('original_filename__contains', 'original_filename')
+        ))
+        requirement = FillingRequirement.objects.filter(**query).order_by('-id').values()
+        data = self.paging(requirement, query_params, FillingRequirementSerializer)
         return Response(data)
 
     def post(self, request: Request, format=None):
@@ -185,19 +187,15 @@ class ColumnRuleList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        requirement_id = query_params.get('requirementId', None)
-        column_name = query_params.get('columnName', None)
+        requirement_id = query_params.get('requirement_id', None)
         if not requirement_id:
             raise ValueError('查询列规则必须传需求ID')
-        column_rule = ColumnRule.objects.get_queryset()
-        if requirement_id:
-            column_rule = column_rule.filter(requirement_id__exact=int(requirement_id))
+        query = {'requirement_id__exact': int(requirement_id)}
+        column_name = query_params.get('column_name', None)
         if column_name:
-            column_rule = column_rule.filter(column_name__iexact=column_name)
-        column_rule = column_rule.order_by('-id').values()
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
-        data = self.paging(column_rule, page, size, ColumnRuleSerializer)
+            query['column_name__iexact'] = column_name
+        column_rule = ColumnRule.objects.filter(**query).order_by('-id').values()
+        data = self.paging(column_rule, query_params, ColumnRuleSerializer)
         return Response(data)
 
     def post(self, request: Request, format=None):
@@ -267,14 +265,11 @@ class DataParameterList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        column_rule_id = query_params.get('columnRuleId', None)
-        data_parameter = DataParameter.objects.get_queryset()
-        if column_rule_id:
-            data_parameter = data_parameter.filter(column_rule_id__exact=int(column_rule_id))
-        data_parameter = data_parameter.order_by('-id').values()
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
-        data = self.paging(data_parameter, page, size, DataParameterSerializer)
+        query = self.resolve_query_params(query_params, (
+            ('column_rule_id__exact', 'column_rule_id'),
+        ))
+        data_parameter = DataParameter.objects.filter(**query).order_by('-id').values()
+        data = self.paging(data_parameter, query_params, DataParameterSerializer)
         return Response(data)
 
     def post(self, request: Request, format=None):
@@ -297,6 +292,7 @@ class DataParameterList(APIView, PagingViewMixin):
 
     def validate_parameter_related_columns(self, data_param):
         gen_rule_param_id, column_rule_id = data_param['param_rule_id'], data_param['column_rule_id']
+        # 尽量读缓存
         param = GenerateRuleParameter.get_with_cache(gen_rule_param_id)
         gen_rule = GenerateRule.get_with_cache(param.rule_id)
         rule_func_name = gen_rule.function_name
@@ -329,11 +325,12 @@ class DataParameterList(APIView, PagingViewMixin):
     def validate_column(column_rule, column_name):
         if column_name == column_rule.column_name:
             raise ValueError(f'关联的列不能包含自身 "{column_name}"')
-        if not ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement.id,
-                                         column_name__iexact=column_name).exists():
+        expected_column = ColumnRule.objects.filter(requirement_id__exact=column_rule.requirement.id,
+                                                    column_name__iexact=column_name)
+        if not expected_column.exists():
             raise ValueError(f'传入的关联列 "{column_name}" 未在此填充规则中定义')
-        column_rule = ColumnRule.objects.get(requirement_id__exact=column_rule.requirement.id,
-                                             column_name__iexact=column_name)
+        # 查询对应列的绑定规则数据
+        column_rule = expected_column[0]
         generate_rule = GenerateRule.get_with_cache(column_rule.rule.id)
         if generate_rule.function_name in {'join_string', 'calculate_expressions'}:
             raise ValueError(f'传入的关联列 "{column_name}" 的生成规则不能为列值拼接、表达式计算')
@@ -388,14 +385,12 @@ class DataSetList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        username = query_params.get('username', default=None)
-        data_set = DataSet.objects.get_queryset()
-        if username:
-            data_set = data_set.filter(username__exact=username)
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
-        data_set.order_by('-id').values()
-        data = self.paging(data_set, page, size, DataSetSerializer)
+        query = self.resolve_query_params(query_params, (
+            ('username__exact', 'username'),
+            ('description__contains', 'description')
+        ))
+        data_set = DataSet.objects.filter(**query).order_by('-id').values()
+        data = self.paging(data_set, query_params, DataSetSerializer)
         return Response(data)
 
     def post(self, request: Request, format=None):
@@ -457,14 +452,11 @@ class DataSetDefineList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        data_set_id = query_params.get('dataSetId', None)
-        data_set_define = DataSetDefine.objects.get_queryset()
-        if data_set_id:
-            data_set_define = data_set_define.filter(data_set_id__exact=int(data_set_id))
-        data_set_define = data_set_define.order_by('-id').values()
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
-        data = self.paging(data_set_define, page, size, DataSetDefineSerializer)
+        query = self.resolve_query_params(query_params, (
+            ('data_set_id__exact', 'data_set_id'),
+        ))
+        data_set_define = DataSetDefine.objects.filter(**query).order_by('-id').values()
+        data = self.paging(data_set_define, query_params, DataSetDefineSerializer)
         return Response(data)
 
     def post(self, request: Request, format=None):
@@ -524,14 +516,11 @@ class DataSetValueList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        data_set_id = query_params.get('dataSetId', None)
-        data_set_value = DataSetValue.objects.get_queryset()
-        if data_set_id:
-            data_set_value = data_set_value.filter(data_set_id__exact=int(data_set_id))
-        data_set_value = data_set_value.order_by('-id').values()
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
-        data = self.paging(data_set_value, page, size, DataSetValueSerializer)
+        query = self.resolve_query_params(query_params, (
+            ('data_set_id__exact', 'data_set_id'),
+        ))
+        data_set_value = DataSetValue.objects.filter(**query).order_by('-id').values()
+        data = self.paging(data_set_value, query_params, DataSetValueSerializer)
         return Response(data)
 
     def post(self, request: Request, format=None):
@@ -591,14 +580,11 @@ class DataSetBindList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        data_set_id = query_params.get('dataSetId', None)
-        data_set_bind = DataSetBind.objects.get_queryset()
-        if data_set_id:
-            data_set_bind = data_set_bind.filter(data_set_id__exact=int(data_set_id))
-        data_set_bind = data_set_bind.order_by('-id').values()
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
-        data = self.paging(data_set_bind, page, size, DataSetBindSerializer)
+        query = self.resolve_query_params(query_params, (
+            ('data_set_id__exact', 'data_set_id'),
+        ))
+        data_set_bind = DataSetBind.objects.filter(**query).order_by('-id').values()
+        data = self.paging(data_set_bind, query_params, DataSetBindSerializer)
         return Response(data)
 
     def post(self, request: Request, format=None):
@@ -658,11 +644,12 @@ class GenerateRuleList(APIView, PagingViewMixin, CacheManager):
     cache_prefix = 'GenerateRuleList'
 
     def get(self, request: Request, format=None):
+        query_params = request.query_params
+
         def query():
             generate_rule = GenerateRule.objects.order_by('-id').values()
-            return self.paging(generate_rule, page, size, GenerateRuleSerializer)
+            return self.paging(generate_rule, query_params, GenerateRuleSerializer)
 
-        query_params = request.query_params
         page = query_params.get('page', default=1)
         size = query_params.get('size', default=8)
         data = self.get_cache(f'{page}of{size}', query)
@@ -704,7 +691,7 @@ class GenerateRuleParameterList(APIView, PagingViewMixin, CacheManager):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        rule_id = query_params.get('ruleId', None)
+        rule_id = query_params.get('rule_id', None)
         if rule_id == -1:
             raise ValueError("未传生成规则ID")
         if not GenerateRule.objects.filter(id__exact=rule_id).exists():
@@ -713,7 +700,7 @@ class GenerateRuleParameterList(APIView, PagingViewMixin, CacheManager):
         def query():
             generate_rule_parameter = GenerateRuleParameter.objects.filter(
                 rule_id__exact=int(rule_id)).order_by('-id').values()
-            return self.paging(generate_rule_parameter, page, size, GenerateRuleParameterSerializer)
+            return self.paging(generate_rule_parameter, query_params, GenerateRuleParameterSerializer)
 
         page = query_params.get('page', default=1)
         size = query_params.get('size', default=8)
@@ -808,20 +795,13 @@ class FileRecordList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        requirement_id = query_params.get('requirementId', None)
-        username = query_params.get('username', None)
-        filename = query_params.get('filename', None)
-        file_record = FileRecord.objects.get_queryset()
-        if requirement_id:
-            file_record = file_record.filter(requirement_id__exact=int(requirement_id))
-        if username:
-            file_record = file_record.filter(username__exact=username)
-        if filename:
-            file_record = file_record.filter(filename__contains=filename)
-        file_record = file_record.order_by('-id').values()
-        page = query_params.get('page', default=1)
-        size = query_params.get('size', default=8)
-        data = self.paging(file_record, page, size, FileRecordSerializer)
+        query = self.resolve_query_params(query_params, (
+            ('requirement_id__exact', 'requirementId'),
+            ('username__exact', 'username'),
+            ('filename__contains', 'filename')
+        ))
+        file_record = FileRecord.objects.filter(**query).order_by('-id').values()
+        data = self.paging(file_record, query_params, FileRecordSerializer)
         return Response(data)
 
 

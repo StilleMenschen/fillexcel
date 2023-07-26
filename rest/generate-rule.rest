@@ -21,7 +21,7 @@ Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/fills/generateRuleParameter
-?ruleId=4880372080640
+?rule_id=4880372080640
 &page=1
 &size=8 HTTP/1.1
 Authorization: Bearer {{token}}

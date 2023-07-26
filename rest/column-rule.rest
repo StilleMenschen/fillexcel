@@ -11,8 +11,8 @@ Content-Type: application/json
 
 ###
 GET {{baseUrl}}/fills/columnRule
-?requirementId=5317329305600
-&columnName=
+?requirement_id=5317329305600
+&column_name=
 &page=2
 &size=2 HTTP/1.1
 Authorization: Bearer {{token}}
@@ -32,6 +32,6 @@ Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/fills/dataParameter
-?columnRuleId=7019797061632
+?column_rule_id=7019797061632
 &size=8 HTTP/1.1
 Authorization: Bearer {{token}}
