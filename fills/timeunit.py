@@ -10,8 +10,8 @@ NANOSECONDS_PER_DAYS = 24 * NANOSECONDS_PER_HOURS
 
 
 class TimeUnit(Enum):
+    """时间计算工具，未考虑计算数值溢出问题"""
     __slots__ = ()
-    """时间计算工具"""
     NANOSECONDS = 1
     MICROSECONDS = 2
     MILLISECONDS = 3
@@ -66,6 +66,7 @@ class TimeUnit(Enum):
 
 
 class TimeWrapper:
+    """时间计算的包装类"""
     __slots__ = ('base_unit',)
 
     def __init__(self, base_unit=TimeUnit.NANOSECONDS):
@@ -94,6 +95,14 @@ class TimeWrapper:
 
 
 class DurationCalculator:
+    """时间计算器
+    第一个属性值为基础单位，第二个值为需要转换的单位
+
+    dc = DurationCalculator()
+    dc.hours.to_minutes(4)  # 240.0
+    dc.minutes.to_seconds(20)  # 1200.0
+    dc.days.to_minutes(2.5)  # 3600.0
+    """
     __slots__ = ()
     nanoseconds = TimeWrapper(TimeUnit.NANOSECONDS)
     microseconds = TimeWrapper(TimeUnit.MICROSECONDS)
