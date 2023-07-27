@@ -220,7 +220,7 @@ class DataParameter(IdDateTimeBase):
 
     name = models.CharField('参数名', max_length=255)
     value = models.CharField('参数值', blank=True, default=str, max_length=512)
-    data_set_id = models.BigIntegerField('关联数据集', null=True, blank=True)
+    data_set_id = models.BigIntegerField('关联数据集', null=True, default=None)
 
     class Meta:
         db_table = 'data_parameter'

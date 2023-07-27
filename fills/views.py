@@ -436,8 +436,9 @@ class DataSetDetail(APIView, CacheManager):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        if DataSetBind.objects.filter(data_set__id__exact=pk).exists():
-            raise RuntimeError('已经存在绑定此数据的生成请求，不能删除')
+        # 列绑定和规则绑定的数据集都不能删除
+        if DataSetBind.objects.filter(data_set_id__exact=pk).exists() or DataParameter.objects.filter(data_set_id__exact=pk).exists():
+            raise RuntimeError('已存在绑定此数据集的生成规则配置，不能删除')
         data_set = self.get_object(pk)
         data_set.delete()
         self.invalid_cache(pk)
