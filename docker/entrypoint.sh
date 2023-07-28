@@ -1,3 +1,3 @@
 #!/bin/sh
 
-python manage.py runserver 0.0.0.0:4200
+uwsgi --http :4200 --wsgi-file /app/fillexcel/wsgi.py

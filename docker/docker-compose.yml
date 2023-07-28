@@ -1,0 +1,42 @@
+version: "3.5"
+services:
+  django1:
+    build: ./
+    image: fillexcel:1.0
+    container_name: django1
+    ports:
+      - "4300:4200"
+    environment:
+      TZ: Asia/Shanghai
+    working_dir: /app
+    volumes:
+      - ./:/app
+    networks:
+      fillexcel-net:
+        aliases:
+          - django1
+  web2:
+    image: nginx:1.24.0-alpine3.17
+    container_name: web2
+    ports:
+      - "4201:80"
+    environment:
+      TZ: Asia/Shanghai
+    working_dir: /app/web
+    volumes:
+      - ./html:/app/web
+      - ./logs:/var/log/nginx
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - django1
+    networks:
+      fillexcel-net:
+        aliases:
+          - web2
+
+networks:
+  fillexcel-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.43.0/24"
