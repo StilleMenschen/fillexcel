@@ -1,7 +1,7 @@
 version: "3.5"
 services:
   django1:
-    build: ./
+    build: docker
     image: fillexcel:1.0
     container_name: django1
     ports:

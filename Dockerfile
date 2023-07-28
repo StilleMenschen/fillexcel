@@ -13,6 +13,7 @@ RUN set -x && \
     apk add --no-cache python3-dev build-base linux-headers pcre-dev && \
     pip install -i https://pypi.tuna.tsinghua.edu.cn/simple uwsgi && \
     pip cache purge && \
+    apk cache clean && \
     rm -f /app/requirements.txt
 
 ENTRYPOINT [ "/bin/sh", "entrypoint.sh" ]
