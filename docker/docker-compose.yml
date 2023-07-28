@@ -24,7 +24,7 @@ services:
       TZ: Asia/Shanghai
     working_dir: /app/web
     volumes:
-      - ./html:/app/web
+      - ./:/app
       - ./logs:/var/log/nginx
       - ./config/nginx.conf:/etc/nginx/nginx.conf
     depends_on:

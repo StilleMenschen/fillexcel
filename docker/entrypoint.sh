@@ -1,3 +1,3 @@
 #!/bin/sh
 
-uwsgi --http :4200 --wsgi-file /app/fillexcel/wsgi.py
+uwsgi --uid 101 --gid 101 --ini /app/config/uwsgi.ini
