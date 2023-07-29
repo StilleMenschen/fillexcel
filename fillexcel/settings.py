@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-fmhqgp5l666@46so9qb!ye^b#e&$#g+)ckop4m#o-9dmr6^)7o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ()
+ALLOWED_HOSTS = ('localhost',)
 
 # Application definition
 
@@ -38,7 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "fills.apps.FillsConfig",
+    'fills.apps.FillsConfig',
     'rest_framework',
     'rest_framework_simplejwt'
 )
@@ -88,9 +88,6 @@ DATABASES = {
         'PASSWORD': db_config['password'],
         'HOST': db_config['host'],  # 如果数据库在本地，请填写本机 IP 地址或者 localhost
         'PORT': db_config['port'],  # 默认端口号是 5432
-        "TEST": {
-            "NAME": f"test_{db_config['database']}"
-        }
     }
 }
 
@@ -155,8 +152,11 @@ if not LOG_DIR.exists():
 # 基本配置，可以复用的
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,  # 禁用已经存在的logger实例
-    'filters': {'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'}},
+    'disable_existing_loggers': False,  # 禁用已经存在的 logger 实例
+    'filters': {
+        'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'},
+        'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue'},
+    },
     'formatters': {  # 定义了两种日志格式
         'verbose': {  # 详细
             'format': '%(asctime)s %(levelname)s %(module)s '
@@ -172,7 +172,7 @@ LOGGING = {
             'class': 'logging.handlers.RotatingFileHandler',  # 滚动生成日志，切割
             'filename': LOG_DIR / 'django.log',  # 日志文件名
             'maxBytes': 1024 * 1024 * 8,  # 单个日志文件最大为8M
-            'delay': True,  # 由于 Django 是双进程运行，滚动日志文件可能存在权限问题，比如打开中的文件不能被重命名
+            'delay': True,  # 滚动日志文件可能存在权限问题，比如打开中的文件不能被重命名
             'backupCount': 7,  # 日志备份文件最大数量
             'formatter': 'simple',  # 简单格式
             'encoding': 'utf-8'  # 防止中文乱码
@@ -182,20 +182,21 @@ LOGGING = {
             'class': 'logging.handlers.RotatingFileHandler',  # 滚动生成日志，切割
             'filename': LOG_DIR / 'django-sql.log',  # 日志文件名
             'maxBytes': 1024 * 1024 * 8,  # 单个日志文件最大为8M
-            'delay': True,  # 由于 Django 是双进程运行，滚动日志文件可能存在权限问题，比如打开中的文件不能被重命名
+            'delay': True,  # 滚动日志文件可能存在权限问题，比如打开中的文件不能被重命名
             'backupCount': 7,  # 日志备份文件最大数量
             'formatter': 'simple',  # 简单格式
             'encoding': 'utf-8'  # 防止中文乱码
         },
-        'console': {  # 打印到终端console
+        'console': {  # 打印到终端 console
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'filters': ('require_debug_true',),
             'formatter': 'verbose'
         }
     },
     'loggers': {
         'django.db.backends': {
-            'handlers': ['console', 'sql'],
+            'handlers': ('console', 'sql'),
             'level': 'DEBUG',
             'propagate': True
         }
@@ -213,6 +214,6 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=4),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1)
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=4),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1)
 }
