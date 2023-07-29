@@ -3,6 +3,7 @@ import functools
 import itertools
 import random
 import re
+import threading
 
 
 def fixed_value_iter(fixed_value):
@@ -98,6 +99,13 @@ def validate_expressions(text):
         return True
     else:
         return False
+
+
+def run_in_thread(target=None, args=()):
+    if not target:
+        return
+    t = threading.Thread(target=target, args=args)
+    t.start()
 
 
 if __name__ == '__main__':

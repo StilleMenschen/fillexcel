@@ -5,6 +5,7 @@ import re
 import time
 import typing
 import uuid
+import threading
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -31,6 +32,7 @@ from .storage import Storage
 from .timeunit import dc
 from .tools import try_calculate_expressions
 from .tools import validate_expressions
+from .tools import run_in_thread
 
 log = logging.getLogger(__name__)
 
@@ -171,12 +173,17 @@ class FillingRequirementDetail(APIView, CacheManager):
         requirement = self.get_object(pk)
         requirement.delete()
         self.invalid_cache(pk)
+        run_in_thread(self.delete_requirement_file, (requirement.file_id,))
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @staticmethod
+    def delete_requirement_file(file_id):
         try:
             storage = Storage(retry=0)
-            storage.remove_object(requirement.file_id, 'requirement')
+            storage.remove_object(file_id, 'requirement')
+            log.info(f'填充要求的关联文件已删除: {file_id}')
         except Exception as e:
-            log.error("删除填充要求的关联文件异常:" + str(e))
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            log.error("填充要求的关联文件删除异常:" + str(e))
 
 
 class ColumnRuleList(APIView, PagingViewMixin):
@@ -387,6 +394,7 @@ class DataSetList(APIView, PagingViewMixin):
         query_params = request.query_params
         query = self.resolve_query_params(query_params, (
             ('username__exact', 'username'),
+            ('data_type__exact', 'data_type'),
             ('description__contains', 'description')
         ))
         data_set = DataSet.objects.filter(**query).order_by('-id').values()
@@ -437,8 +445,9 @@ class DataSetDetail(APIView, CacheManager):
 
     def delete(self, request, pk):
         # 列绑定和规则绑定的数据集都不能删除
-        if DataSetBind.objects.filter(data_set_id__exact=pk).exists() or DataParameter.objects.filter(data_set_id__exact=pk).exists():
-            raise RuntimeError('已存在绑定此数据集的生成规则配置，不能删除')
+        if DataSetBind.objects.filter(data_set_id__exact=pk).exists() or DataParameter.objects.filter(
+                data_set_id__exact=pk).exists():
+            raise ValueError('已存在绑定此数据集的生成规则配置，不能删除')
         data_set = self.get_object(pk)
         data_set.delete()
         self.invalid_cache(pk)
@@ -844,9 +853,14 @@ class FileRecordDetail(APIView):
     def delete(self, request, pk):
         file_record = self.get_object(pk)
         file_record.delete()
+        run_in_thread(self.delete_record_file, (file_record.file_id,))
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @staticmethod
+    def delete_record_file(file_id):
         try:
             storage = Storage(retry=0)
-            storage.remove_object(file_record.file_id)
-        except Exception:
-            log.error('生成记录的文件删除出错')
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            storage.remove_object(file_id)
+            log.info(f'生成记录的文件已删除: {file_id}')
+        except Exception as e:
+            log.error('生成记录的文件删除异常:' + str(e))
