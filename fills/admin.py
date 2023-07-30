@@ -10,16 +10,19 @@ from .models import GenerateRule, GenerateRuleParameter
 class FillingRequirementAdmin(admin.ModelAdmin):
     list_display = ('id', 'username', 'remark', 'file_id', 'original_filename', 'start_line', 'line_number',
                     'created_at', 'updated_at')
+    list_per_page = 16
 
 
 class ColumnRuleAdmin(admin.ModelAdmin):
     list_display = ('requirement_id', 'rule_id', 'column_name', 'column_type', 'associated_of')
     list_filter = ('requirement_id',)
+    list_per_page = 16
 
 
 class DataParameterAdmin(admin.ModelAdmin):
     list_display = ('param_rule_id', 'column_rule_id', 'name', 'value', 'data_set_id')
     list_filter = ("param_rule_id", 'column_rule_id')
+    list_per_page = 16
 
 
 class GenerateRuleAdmin(admin.ModelAdmin):
@@ -34,24 +37,29 @@ class GenerateRuleParameterAdmin(admin.ModelAdmin):
 
 class DataSetAdmin(admin.ModelAdmin):
     list_display = ('id', 'username', 'description', 'data_type', 'created_at', 'updated_at')
+    list_per_page = 16
 
 
 class DataSetDefineAdmin(admin.ModelAdmin):
     list_display = ('id', 'data_set_id', 'name', 'data_type', 'created_at', 'updated_at')
     list_filter = ('data_set_id',)
+    list_per_page = 16
 
 
 class DataSetValueAdmin(admin.ModelAdmin):
     list_display = ('id', 'data_set_id', 'item', 'data_type', 'created_at', 'updated_at')
     list_filter = ('data_set_id',)
+    list_per_page = 16
 
 
 class DataSetBindAdmin(admin.ModelAdmin):
     list_display = ('id', 'data_set_id', 'column_name', 'data_name', 'created_at', 'updated_at')
+    list_per_page = 16
 
 
 class FileRecordAdmin(admin.ModelAdmin):
     list_display = ('id', 'requirement_id', 'username', 'file_id', 'filename', 'created_at')
+    list_per_page = 16
 
 
 admin.site.register(FillingRequirement, FillingRequirementAdmin)

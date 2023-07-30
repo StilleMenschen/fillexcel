@@ -454,25 +454,42 @@ class DataSetDetail(APIView, CacheManager):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class DataSetDefineList(APIView, PagingViewMixin):
+class DataSetDefineList(APIView, PagingViewMixin, CacheManager):
     """
     数据集定义: 查询所有/新增
     """
     permission_classes = (permissions.IsAuthenticated,)
+    cache_prefix = 'DataSetDefineList'
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        query = self.resolve_query_params(query_params, (
-            ('data_set_id__exact', 'data_set_id'),
-        ))
-        data_set_define = DataSetDefine.objects.filter(**query).order_by('-id').values()
-        data = self.paging(data_set_define, query_params, DataSetDefineSerializer)
+        data_set_id = query_params.get('data_set_id', None)
+        if not data_set_id:
+            raise ValueError('必须传数据集ID参数')
+
+        def query():
+            params = {'data_set_id__exact': data_set_id}
+            data_set_define = DataSetDefine.objects.filter(**params).order_by('id').values()
+            return self.paging(data_set_define, query_params, DataSetDefineSerializer)
+
+        data = self.get_cache(str(data_set_id), query)
         return Response(data)
 
     def post(self, request: Request, format=None):
-        serializer = DataSetDefineSerializer(data=request.data)
+        serializer = DataSetDefineSerializer(data=request.data, many=True)
+        define_list: list[dict] = request.data
+        names = set()
+        for define in define_list:
+            name = define['name']
+            if name not in names:
+                names.add(name)
+            else:
+                raise ValueError('不能定义重复的字段属性')
         if serializer.is_valid():
+            data_set_id = define_list[0]['data_set_id']
+            DataSetDefine.objects.filter(data_set_id__exact=data_set_id).delete()
             serializer.save()
+            self.invalid_cache(str(data_set_id))
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -502,15 +519,6 @@ class DataSetDefineDetail(APIView, CacheManager):
 
         return Response(data)
 
-    def put(self, request, pk):
-        data_set_define = self.get_object(pk)
-        serializer = DataSetDefineSerializer(data_set_define, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            self.invalid_cache(pk)
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     def delete(self, request, pk):
         data_set_define = self.get_object(pk)
         data_set_define.delete()
@@ -526,9 +534,10 @@ class DataSetValueList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        query = self.resolve_query_params(query_params, (
-            ('data_set_id__exact', 'data_set_id'),
-        ))
+        data_set_id = query_params.get('data_set_id', None)
+        if not data_set_id:
+            raise ValueError('必须传数据集ID参数')
+        query = {'data_set_id__exact': data_set_id}
         data_set_value = DataSetValue.objects.filter(**query).order_by('-id').values()
         data = self.paging(data_set_value, query_params, DataSetValueSerializer)
         return Response(data)
@@ -590,9 +599,10 @@ class DataSetBindList(APIView, PagingViewMixin):
 
     def get(self, request: Request, format=None):
         query_params = request.query_params
-        query = self.resolve_query_params(query_params, (
-            ('data_set_id__exact', 'data_set_id'),
-        ))
+        data_set_id = query_params.get('data_set_id', None)
+        if not data_set_id:
+            raise ValueError('必须传数据集ID参数')
+        query = {'data_set_id__exact': data_set_id}
         data_set_bind = DataSetBind.objects.filter(**query).order_by('-id').values()
         data = self.paging(data_set_bind, query_params, DataSetBindSerializer)
         return Response(data)

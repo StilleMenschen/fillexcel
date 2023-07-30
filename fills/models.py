@@ -127,7 +127,7 @@ class DataSet(IdDateTimeBase):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return f'<[{self.__class__.__name__}] {self.description}>'
+        return f'<[{self.__class__.__name__}] {reprlib.repr(self.description)}>'
 
 
 class DataSetDefine(IdDateTimeBase):
