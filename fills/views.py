@@ -608,7 +608,17 @@ class DataSetBindList(APIView, PagingViewMixin):
         return Response(data)
 
     def post(self, request: Request, format=None):
-        serializer = DataSetBindSerializer(data=request.data)
+        log.info(request.data)
+        query = {
+            'data_set_id__exact': request.data['data_set_id'],
+            'column_rule_id__exact': request.data['column_rule_id'],
+            'column_name__exact': request.data['column_name']
+        }
+        if DataSetBind.objects.filter(**query).exists():
+            data_set_bind = DataSetBind.objects.get(**query)
+            serializer = DataSetBindSerializer(data_set_bind, data=request.data)
+        else:
+            serializer = DataSetBindSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -639,15 +649,6 @@ class DataSetBindDetail(APIView, CacheManager):
         data = self.get_cache(pk, query)
 
         return Response(data)
-
-    def put(self, request, pk):
-        data_set_bind = self.get_object(pk)
-        serializer = DataSetBindSerializer(data_set_bind, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            self.invalid_cache(pk)
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         data_set_bind = self.get_object(pk)

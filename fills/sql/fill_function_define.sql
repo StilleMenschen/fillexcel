@@ -12,8 +12,8 @@ INSERT INTO public.generate_rule_parameter (id,created_at,updated_at,"name",data
 	 (7359642402816,'2023-07-02 09:33:13.877037+08','2023-07-22 10:50:38.592065+08','columns','string','连接的列值',true,'',false,4898068365312,'英文逗号分隔的列名，如：A,F,AC'),
 	 (7341998874624,'2023-07-02 08:57:20.123192+08','2023-07-22 10:54:33.096319+08','delimiter','string','连接字符',true,'',false,4898068365312,'用来连接列值的字符，如：“-”、“，”等'),
 	 (7053208870912,'2023-07-01 23:09:47.438804+08','2023-07-22 10:55:34.927468+08','expressions','string','计算表达式',true,'',false,4897600479232,'用来计算关联数据的表达式，如：{A} * 0.6 + {E}'),
-	 (6899782516736,'2023-07-01 17:57:38.635218+08','2023-07-22 10:58:29.708995+08','data_set_id','number','数组数据集ID',true,'',true,4883453444096,'外部自定义的数据，字符串组成的数组'),
-	 (7020319580160,'2023-07-01 22:02:52.637376+08','2023-07-22 10:58:49.968895+08','data_set_id','number','对象数据集ID',true,'',true,4884580073472,'外部自定义的数据，自定义字段值组成的数组'),
+	 (6899782516736,'2023-07-01 17:57:38.635218+08','2023-07-22 10:58:29.708995+08','data_set_id','number','数组数据集',true,'',true,4883453444096,'外部自定义的数据，字符串组成的数组'),
+	 (7020319580160,'2023-07-01 22:02:52.637376+08','2023-07-22 10:58:49.968895+08','data_set_id','number','对象数据集',true,'',true,4884580073472,'外部自定义的数据，自定义字段值组成的数组'),
 	 (4878639841280,'2023-06-28 21:25:37.114913+08','2023-07-22 11:00:07.923517+08','fixed_value','string','固定值',true,'',false,4878393573376,'固定不变的字符串值'),
 	 (4883106578432,'2023-06-28 21:34:42.3718+08','2023-07-22 11:09:07.837893+08','repeat','number','重复次数',false,'1',false,4882843648000,'每个时间字符串的重复次数，如设置2表示字符串abc在单元格连续两行相同'),
 	 (4880863305728,'2023-06-28 21:30:08.539895+08','2023-07-22 12:29:27.455861+08','start','number','起始值',false,'1',false,4880372080640,'随机范围的起始值，默认1'),
@@ -25,9 +25,6 @@ INSERT INTO public.generate_rule_parameter (id,created_at,updated_at,"name",data
 INSERT INTO public.data_set (id,created_at,updated_at,description,username,data_type) VALUES
 	 (6898361286656,'2023-07-01 17:54:45.119367+08','2023-07-01 17:54:45.119367+08','基本数组值','jack','string'),
 	 (7016422940672,'2023-07-01 21:54:56.941002+08','2023-07-01 21:54:56.941002+08','关联数据值','jack','dict');
-INSERT INTO public.data_set_bind (id,created_at,updated_at,data_name,column_name,data_set_id) VALUES
-	 (7018485358592,'2023-07-01 21:59:08.728346+08','2023-07-01 21:59:08.728346+08','fragrance','E',7016422940672),
-	 (7018554433536,'2023-07-01 21:59:17.167101+08','2023-07-01 21:59:28.946573+08','color','F',7016422940672);
 INSERT INTO public.data_set_define (id,created_at,updated_at,name,data_type,data_set_id) VALUES
 	 (7016627699712,'2023-07-01 21:55:21.963113+08','2023-07-01 21:55:21.963113+08','color','string',7016422940672),
 	 (7016871264256,'2023-07-01 21:55:51.695159+08','2023-07-01 21:55:51.695159+08','fragrance','string',7016422940672);
@@ -66,3 +63,11 @@ INSERT INTO public.data_parameter (id,created_at,updated_at,name,value,data_set_
 	 (7054327414784,'2023-07-01 23:12:04.001318+08','2023-07-01 23:12:04.001318+08','expressions','{B} * 0.06 + 42',NULL,7053457121280,7053208870912),
 	 (7342529757184,'2023-07-02 08:58:24.951061+08','2023-07-02 08:58:24.951061+08','delimiter','-',NULL,7342384676864,7341998874624),
 	 (7359942025216,'2023-07-02 09:33:50.469919+08','2023-07-02 09:33:50.469919+08','columns','F,D,A',NULL,7342384676864,7359642402816);
+
+
+INSERT INTO public.data_set_bind (id,created_at,updated_at,data_name,column_name,data_set_id,column_rule_id) VALUES
+	 (7018485358592,'2023-07-01 21:59:08.728346+08','2023-07-01 21:59:08.728346+08','fragrance','E',7016422940672,7019797061632),
+	 (7018554433536,'2023-07-01 21:59:17.167101+08','2023-07-01 21:59:28.946573+08','color','F',7016422940672,7019906957312);
+
+INSERT INTO "auth_user" ("password", "last_login", "is_superuser", "username", "first_name", "last_name", "email", "is_staff", "is_active", "date_joined") VALUES ('pbkdf2_sha256$390000$6QDAmbEkoglmdhnF0CRkpz$c5P15mXqzlzKIutdPWCvTutqxAe901q1Ppb/Ht7Jy2Q=', NULL, true, 'admin', '', '', 'admin@example.com', true, true, '2023-07-30T20:29:15.444797'::timestamp);
+INSERT INTO "auth_user" ("password", "last_login", "is_superuser", "username", "first_name", "last_name", "email", "is_staff", "is_active", "date_joined") VALUES ('pbkdf2_sha256$390000$iK5jAr5eLkc68utPGw2weN$DgAkiY7Szq5iuZeNU8/cRPD2R4HZTyB6zdHp2EcMM7I=', NULL, false, 'jack', '', '', 'jack@fake.co', false, true, '2023-07-30T20:29:15.710378'::timestamp);

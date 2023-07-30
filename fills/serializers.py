@@ -117,10 +117,11 @@ class DataSetValueSerializer(serializers.ModelSerializer):
 
 class DataSetBindSerializer(serializers.ModelSerializer):
     data_set_id = DataSetRelatedField()
+    column_rule_id = ColumnRuleRelatedField()
 
     class Meta:
         model = DataSetBind
-        fields = ('id', 'data_set_id', 'column_name', 'data_name', 'created_at', 'updated_at')
+        fields = ('id', 'data_set_id', 'column_rule_id', 'column_name', 'data_name', 'created_at', 'updated_at')
 
 
 class GenerateRuleSerializer(serializers.ModelSerializer):

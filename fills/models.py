@@ -162,22 +162,6 @@ class DataSetValue(IdDateTimeBase):
         return f'<[{self.__class__.__name__}] {reprlib.repr(self.item)}>'
 
 
-class DataSetBind(IdDateTimeBase):
-    data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE, verbose_name='关联数据集')
-
-    column_name = models.CharField('单元格列名', max_length=3)
-    data_name = models.CharField('关联属性名', max_length=255)
-
-    class Meta:
-        db_table = 'data_set_bind'
-        verbose_name = '数据集绑定列'
-        verbose_name_plural = verbose_name
-        constraints = (UniqueConstraint(fields=('column_name', 'data_name'), name='unique_data_attr_bind'),)
-
-    def __str__(self):
-        return f'<[{self.__class__.__name__}] {self.data_name} = {self.column_name}>'
-
-
 class ColumnRule(IdDateTimeBase):
     requirement = models.ForeignKey(FillingRequirement, on_delete=models.CASCADE, verbose_name='关联填充要求')
     rule = models.ForeignKey(GenerateRule, on_delete=models.CASCADE, verbose_name='关联规则')
@@ -212,6 +196,24 @@ class ColumnRule(IdDateTimeBase):
 
     def __str__(self):
         return f"<[{self.column_name}] {self.column_type} - {self.rule_id}>"
+
+
+class DataSetBind(IdDateTimeBase):
+    data_set = models.ForeignKey(DataSet, on_delete=models.CASCADE, verbose_name='关联数据集')
+    column_rule = models.ForeignKey(ColumnRule, on_delete=models.CASCADE, verbose_name='关联列规则')
+
+    column_name = models.CharField('单元格列名', max_length=3)
+    data_name = models.CharField('关联属性名', max_length=255)
+
+    class Meta:
+        db_table = 'data_set_bind'
+        verbose_name = '数据集绑定列'
+        verbose_name_plural = verbose_name
+        constraints = (
+            UniqueConstraint(fields=('data_set_id', 'column_rule_id', 'column_name'), name='unique_column_bind'),)
+
+    def __str__(self):
+        return f'<[{self.__class__.__name__}] {self.data_name} = {self.column_name}>'
 
 
 class DataParameter(IdDateTimeBase):

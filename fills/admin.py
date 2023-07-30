@@ -53,7 +53,7 @@ class DataSetValueAdmin(admin.ModelAdmin):
 
 
 class DataSetBindAdmin(admin.ModelAdmin):
-    list_display = ('id', 'data_set_id', 'column_name', 'data_name', 'created_at', 'updated_at')
+    list_display = ('id', 'data_set_id', 'column_rule_id', 'column_name', 'data_name', 'created_at', 'updated_at')
     list_per_page = 16
 
 
