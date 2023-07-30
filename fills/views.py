@@ -602,13 +602,16 @@ class DataSetBindList(APIView, PagingViewMixin):
         data_set_id = query_params.get('data_set_id', None)
         if not data_set_id:
             raise ValueError('必须传数据集ID参数')
-        query = {'data_set_id__exact': data_set_id}
+        query = self.resolve_query_params(query_params, (
+            ('data_set_id__exact', 'data_set_id'),
+            ('column_rule_id__exact', 'column_rule_id'),
+            ('column_name__exact', 'column_name')
+        ))
         data_set_bind = DataSetBind.objects.filter(**query).order_by('-id').values()
         data = self.paging(data_set_bind, query_params, DataSetBindSerializer)
         return Response(data)
 
     def post(self, request: Request, format=None):
-        log.info(request.data)
         query = {
             'data_set_id__exact': request.data['data_set_id'],
             'column_rule_id__exact': request.data['column_rule_id'],
