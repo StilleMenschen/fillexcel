@@ -173,6 +173,7 @@ class FillingRequirementDetail(APIView, CacheManager):
         requirement = self.get_object(pk)
         requirement.delete()
         self.invalid_cache(pk)
+        # 异步操作删除
         run_in_thread(self.delete_requirement_file, (requirement.file_id,))
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -496,7 +497,7 @@ class DataSetDefineList(APIView, PagingViewMixin, CacheManager):
 
 class DataSetDefineDetail(APIView, CacheManager):
     """
-    数据集定义: 单个查询/修改/删除
+    数据集定义: 单个查询/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
     cache_prefix = 'DataSetDefineDetail'
@@ -630,7 +631,7 @@ class DataSetBindList(APIView, PagingViewMixin):
 
 class DataSetBindDetail(APIView, CacheManager):
     """
-    数据集绑定: 单个查询/修改/删除
+    数据集绑定: 单个查询/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
     cache_prefix = 'DataSetBindDetail'
@@ -813,7 +814,7 @@ class FileUploadView(APIView):
 
 class FileRecordList(APIView, PagingViewMixin):
     """
-    生成文件记录: 查询所有/新增
+    生成文件记录: 查询所有
     """
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -867,6 +868,7 @@ class FileRecordDetail(APIView):
     def delete(self, request, pk):
         file_record = self.get_object(pk)
         file_record.delete()
+        # 异步操作删除
         run_in_thread(self.delete_record_file, (file_record.file_id,))
         return Response(status=status.HTTP_204_NO_CONTENT)
 
