@@ -1,5 +1,73 @@
 version: "3.5"
 services:
+  postgres1:
+    image: postgres:15.2-alpine
+    container_name: postgres1
+    ports:
+      - "5432:5432"
+    environment:
+      TZ: Asia/Shanghai
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    networks:
+      fillexcel-net:
+        aliases:
+          - postgres1
+  rabbitmq1:
+    image: rabbitmq:3.11.13-management-alpine
+    container_name: rabbitmq1
+    hostname: rabbitmq1
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      TZ: Asia/Shanghai
+      RABBITMQ_DEFAULT_USER: fillexcel
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+    networks:
+      fillexcel-net:
+        aliases:
+          - rabbitmq1
+  # 较新版本的 redis 设置密码的操作方式如下
+  # 1. 进入容器内
+  #    docker exec -it redis1 redis-cli
+  # 2. 设置默认的密码为 654321
+  #    acl setuser default on >654321 ~* &* +@all
+  redis1:
+    image: redis:7.0.9-alpine
+    container_name: redis1
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./redis/data:/data
+    networks:
+      fillexcel-net:
+        aliases:
+          - redis1
+  # minio 访问的密钥需要登录（ http://minio1:9001）进去设置，可参考官方文档
+  minio1:
+    image: quay.io/minio/minio
+    container_name: minio1
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    environment:
+      TZ: Asia/Shanghai
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+    volumes:
+      - ./minio/data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      fillexcel-net:
+        aliases:
+          - minio1
   django1:
     build: ./
     image: fillexcel:1.0
@@ -15,11 +83,11 @@ services:
       fillexcel-net:
         aliases:
           - django1
-  web2:
+  web1:
     image: nginx:1.24.0-alpine3.17
     container_name: web2
     ports:
-      - "4201:80"
+      - "80:80"
     environment:
       TZ: Asia/Shanghai
     working_dir: /app/web
@@ -32,7 +100,7 @@ services:
     networks:
       fillexcel-net:
         aliases:
-          - web2
+          - web1
 
 networks:
   fillexcel-net:
