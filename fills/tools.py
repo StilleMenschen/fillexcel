@@ -108,6 +108,18 @@ def run_in_thread(target=None, args=()):
     t.start()
 
 
+def is_basic_ascii_visible(string):
+    if not string or not len(string):
+        return False
+    # 遍历字符串中的每个字符
+    for char in string:
+        # 检查字符的ASCII值是否在32-126之间（不包括空格）
+        if ord(char) <= 32 or ord(char) > 126:
+            return False
+
+    return True
+
+
 if __name__ == '__main__':
     for item in zip(range(10), random_number_iter()):
         print(item, end=', ')

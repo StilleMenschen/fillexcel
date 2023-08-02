@@ -5,7 +5,6 @@ import re
 import time
 import typing
 import uuid
-import threading
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -30,9 +29,10 @@ from .serializers import UserSerializer
 from .service import fill_excel
 from .storage import Storage
 from .timeunit import dc
+from .tools import is_basic_ascii_visible
+from .tools import run_in_thread
 from .tools import try_calculate_expressions
 from .tools import validate_expressions
-from .tools import run_in_thread
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +62,40 @@ class UserView(APIView, CacheManager):
         data = self.get_cache(username, query)
 
         return Response(data)
+
+
+class UserCreateView(APIView, CacheManager):
+
+    def head(self, request):
+        username: str = request.query_params['username']
+        if not username or not username.strip():
+            return Response(headers={'USER-EXISTS': 'FALSE'})
+        if User.objects.filter(username__exact=username).exists():
+            return Response(headers={'USER-EXISTS': 'TRUE'})
+        else:
+            return Response(headers={'USER-EXISTS': 'FALSE'})
+
+    def post(self, request):
+        limit_cache_key = 'UserCreateView:UserCreateLimit'
+        request_count = cache.get(limit_cache_key, 0)
+
+        if request_count >= 30:
+            raise ValueError('您的操作频率太快，请稍后再试！')
+        # 10 分钟内 30 次操作
+        cache.set(limit_cache_key, request_count + 1, dc.minutes.to_seconds(10))
+
+        name: str = request.data['username']
+        passwd: str = request.data['password']
+        if not name or not len(name.strip()):
+            raise ValueError('用户名不能为空')
+        if not passwd or not len(passwd.strip()) or not is_basic_ascii_visible(passwd):
+            raise ValueError('密码不能为空且只允许基本的可见ASCII字符')
+        if User.objects.filter(username__exact=name).exists():
+            user = User.objects.get(username__exact=name)
+        else:
+            user = User.objects.create_user(username=name, email=f'{name}@fill-excel.co', password=passwd.strip())
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
 
 class IndexView(generic.ListView):
@@ -772,7 +806,7 @@ class GeneratesView(APIView):
 
         if request_count >= 42:
             raise ValueError('您的操作频率太快，请稍后再试！')
-
+        # 1 分钟内 42 次操作
         cache.set(limit_cache_key, request_count + 1, dc.minutes.to_seconds(1))
 
         t0 = time.perf_counter()
@@ -850,7 +884,7 @@ class FileRecordDetail(APIView):
 
         if request_count >= 30:
             raise ValueError('您的操作频率太快，请稍后再试！')
-
+        # 1 分钟内 30 次操作
         cache.set(limit_cache_key, request_count + 1, dc.minutes.to_seconds(1))
 
         file_record = self.get_object(pk)
