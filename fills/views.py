@@ -65,6 +65,10 @@ class UserView(APIView, CacheManager):
 
 
 class UserCreateView(APIView, CacheManager):
+    """
+    用户注册
+    """
+    permission_classes = ()
 
     def head(self, request):
         username: str = request.query_params['username']
@@ -94,8 +98,9 @@ class UserCreateView(APIView, CacheManager):
             user = User.objects.get(username__exact=name)
         else:
             user = User.objects.create_user(username=name, email=f'{name}@fill-excel.co', password=passwd.strip())
+        user.password = None
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class IndexView(generic.ListView):

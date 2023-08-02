@@ -15,10 +15,10 @@ GET {{baseUrl}}/user/jack HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
-HEAD {{baseUrl}}/user?username=jack HTTP/1.1
+HEAD {{baseUrl}}/users?username=jack HTTP/1.1
 
 ###
-POST {{baseUrl}}/user HTTP/1.1
+POST {{baseUrl}}/users HTTP/1.1
 Content-Type: application/json
 
 {
