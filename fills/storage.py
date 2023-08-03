@@ -27,7 +27,7 @@ class Storage:
 
     def __init__(self, retry=4):
         """对象存储
-        retry: 重试次数
+        :param retry 重试次数
         """
         timeout = 30  # 30 秒请求超时
         ca_certs = os.environ.get('SSL_CERT_FILE') or certifi.where()
@@ -55,9 +55,10 @@ class Storage:
     def store_object_for_path(self, hash_id, file_path, folder=None, content_type=None):
         """存储对应路径的文件
 
-        file_path: 文件路径
-        folder: 对象存储的文件夹
-        content_type: 内容类型，默认 application/octet-stream
+        :param hash_id 文件ID（文件名）
+        :param file_path 文件路径
+        :param folder 对象存储的文件夹
+        :param content_type 内容类型，默认 application/octet-stream
         """
         p = convert_path(file_path)
         if folder:
@@ -75,10 +76,11 @@ class Storage:
     def store_object(self, hash_id, file, size, folder=None, content_type=None):
         """直接存储文件
 
-        file: 文件，有 read() 方法
-        size: 文件大小
-        folder: 对象存储的文件夹
-        content_type: 内容类型，默认 application/octet-stream
+        :param hash_id 文件ID（文件名）
+        :param file 文件，有 read() 方法
+        :param size 文件大小
+        :param folder 对象存储的文件夹
+        :param content_type 内容类型，默认 application/octet-stream
         """
         if folder:
             filename = f'{folder}/{hash_id}'
@@ -94,7 +96,8 @@ class Storage:
     def get_object(self, file_id, folder=None) -> bytes:
         """获得文件字节
 
-        folder: 对象存储的文件夹
+        :param file_id 文件ID（文件名）
+        :param folder 对象存储的文件夹
         """
         if folder:
             obj = self.client.get_object(self.bucket, f'{folder}/{file_id}')
@@ -105,8 +108,9 @@ class Storage:
     def get_object_to_path(self, file_id, fspath, folder=None):
         """获得文件并保存到指定路径
 
-        fspath: 存储的路径
-        folder: 对象存储的文件夹
+        :param file_id 文件ID（文件名）
+        :param fspath 存储的路径
+        :param folder 对象存储的文件夹
         """
         if folder:
             self.client.fget_object(self.bucket, f'{folder}/{file_id}', fspath)
@@ -114,6 +118,7 @@ class Storage:
             self.client.fget_object(self.bucket, file_id, fspath)
 
     def remove_object(self, file_id, folder=None):
+        """删除文件"""
         if folder:
             self.client.remove_object(self.bucket, f'{folder}/{file_id}')
         else:

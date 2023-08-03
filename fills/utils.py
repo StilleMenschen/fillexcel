@@ -6,6 +6,10 @@ class IllegalArgumentError(Exception):
 
 
 class SnowFlake:
+    """雪花算法
+
+    没有考虑并发的加锁问题
+    """
     # start at 2023-06-22T00:00:00
     TIME_EPOCH = 1687363200000
 

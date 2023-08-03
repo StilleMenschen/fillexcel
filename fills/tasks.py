@@ -21,16 +21,22 @@ log = init_logger(__name__, 'celery-task.log')
 
 @app.task
 def write_to_excel(data_for_fill: dict):
+    """[定时任务] 写入数据到 Excel
+
+    :param data_for_fill 待写入的数据
+    """
     t0 = time.perf_counter()
-    # 下载文件到临时目录
+    # 创建操作系统支持的临时目录
     tempdir = tempfile.TemporaryDirectory()
     tmp_dir = pathlib.Path(tempdir.name)
     filename = add_timestamp_for_filename(data_for_fill['filename'])
     save_path = tmp_dir / filename
     try:
         storge = Storage()
+        # 下载文件到临时目录
         storge.get_object_to_path(data_for_fill['fileId'], str(save_path), 'requirement')
     except Exception as e:
+        # 清空缓存文件
         tempdir.cleanup()
         log.error(str(e))
         return False
@@ -57,6 +63,7 @@ def write_to_excel(data_for_fill: dict):
         log.error(str(e))
         return False
     finally:
+        # 清空缓存文件
         tempdir.cleanup()
     # 文件生成记录
     save_record(data_for_fill['requirementId'], data_for_fill['username'], data_for_fill['hashId'], filename)
@@ -66,6 +73,7 @@ def write_to_excel(data_for_fill: dict):
 
 
 def add_timestamp_for_filename(filename=None):
+    """为文件名加上时间戳"""
     if not filename:
         return filename
     filename, ext = os.path.splitext(filename)
@@ -73,6 +81,7 @@ def add_timestamp_for_filename(filename=None):
 
 
 def save_record(requirement_id, username, file_id, filename):
+    """写入生成记录到数据库"""
     try:
         connection = psycopg2.connect(**read_postgres_config())
         cursor = connection.cursor()

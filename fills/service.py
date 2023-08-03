@@ -133,6 +133,14 @@ __ASSOCIATED_FUNCTION__ = {
 
 def exec_associated_of_iter(column_rule: ColumnRule, rule: GenerateRule,
                             start_line: int, end_line: int, column_data: dict):
+    """执行关联数据的填入
+
+    :param column_rule 列规则
+    :param rule 生成规则
+    :param start_line 起始行
+    :param end_line 填入行数
+    :param column_data 写入 Excel 的数据
+    """
     # 传入的参数和值
     args = dict(**locals())
     a_f = __ASSOCIATED_FUNCTION__.get(rule.function_name, None)
@@ -143,6 +151,7 @@ def exec_associated_of_iter(column_rule: ColumnRule, rule: GenerateRule,
 
 
 def match_normal_iter(column_rule: ColumnRule, rule: GenerateRule):
+    """指定一般数据的填入"""
     param_list = DataParameter.objects.filter(column_rule_id__exact=column_rule.id)
     # 将参数转为字典，传给调用方法的命名关键字参数
     param_dict = dict(((p.name, p.value) for p in param_list))
@@ -156,6 +165,11 @@ def match_normal_iter(column_rule: ColumnRule, rule: GenerateRule):
 
 
 def fill_excel(fr: FillingRequirement, hash_id):
+    """填入数据到 Excel
+
+    :param fr 填充规则
+    :param hash_id 生成的文件ID
+    """
     column_rule_list = ColumnRule.objects.filter(requirement_id__exact=fr.id)
     if not len(column_rule_list):
         raise ValueError('没有定义列填充规则，请先定义规则')
