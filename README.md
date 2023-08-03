@@ -41,8 +41,8 @@
 
 ## 主要组件
 
-1. django
-2. celery
+1. Django
+2. Celery
 3. xlwings
 
 ## 外部服务
@@ -77,17 +77,27 @@ docker compose up -d --build
 3. 将展示的 Access Key 和 secret Key 复制到 fillexcel/configure.ini 中对应 [minio] 下的 access 和 secret
 4. 点击 Create，完成
 
-### 构建前端并到指定目录
+### 前端文件
 
 由于是前后端分离的，前端代码参考对应的仓库 [fillexcel-front](https://gitee.com/stillemenschen/fillexcel-front)
 
-前端打包后的文件放置在 ./web 路径下
+前端打包后的文件放置在 web 路径下
+
+### 数据库
+
+首次使用需要初始化数据库，先在 PostgresSQL 中创建一个名为 fillexcel 的数据库，然后在项目根目录下执行合并
+
+```bash
+python manage.py migrate
+```
+
+> 如果需要初始数据，可以执行脚本 fills/sql/fill_function_define.sql
 
 ### 在 Windows/MacOS 机器上启动 Celery
 
 1. 在对应机器上安装 Python 3.11
 2. 通过 pip 安装依赖
-   
+
    ```bash
    pip install -U celery xlwings psycopg2 redis certifi urllib3 minio
    ```
@@ -98,7 +108,7 @@ docker compose up -d --build
    git clone https://gitee.com/stillemenschen/fillexcel.git
    cd fillexcel
    ```
- 
+
 4. 项目根目录下，运行任务接收生成请求
 
    ```bash

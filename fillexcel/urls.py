@@ -22,8 +22,11 @@ from fills import views
 urlpatterns = (
     path('auth/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
+    # 后台管理
     path('admin/', admin.site.urls),
+    # 用户注册和查询
     path('users', views.UserCreateView.as_view(), name='user_create'),
     path('user/<str:username>', views.UserView.as_view(), name='user_info'),
+    # 表格填充相关模块的
     path("fills/", include("fills.urls")),
 )

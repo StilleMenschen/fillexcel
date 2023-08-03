@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 def write_value_list(column_rule: ColumnRule, rule: GenerateRule,
                      start_line: int, end_line: int, column_data: dict):
+    """写入字符串数组"""
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
     data_value_list = DataSetValue.objects.filter(data_set__exact=param.data_set_id)
     if not len(data_value_list):
@@ -38,6 +39,7 @@ def write_value_list(column_rule: ColumnRule, rule: GenerateRule,
 
 def write_associated_list(column_rule: ColumnRule, rule: GenerateRule,
                           start_line: int, end_line: int, column_data: dict):
+    """写入关联填入的对象数组"""
     # 已经填入的值不需要重复填入
     if column_rule.column_name in column_data:
         return
@@ -67,6 +69,7 @@ def write_associated_list(column_rule: ColumnRule, rule: GenerateRule,
 
 def write_calculate_expressions(column_rule: ColumnRule, rule: GenerateRule,
                                 start_line: int, end_line: int, column_data: dict):
+    """计算给定的表达式"""
     t0 = time.perf_counter()
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
     expressions = param.value
@@ -92,6 +95,7 @@ def write_calculate_expressions(column_rule: ColumnRule, rule: GenerateRule,
 
 def write_join_string(column_rule: ColumnRule, rule: GenerateRule,
                       start_line: int, end_line: int, column_data: dict):
+    """特定字符拼接其它单元格的值"""
     t0 = time.perf_counter()
     param_list = DataParameter.objects.filter(column_rule_id__exact=column_rule.id)
     # 转换参数为字典
@@ -140,6 +144,7 @@ def exec_associated_of_iter(column_rule: ColumnRule, rule: GenerateRule,
 
 def match_normal_iter(column_rule: ColumnRule, rule: GenerateRule):
     param_list = DataParameter.objects.filter(column_rule_id__exact=column_rule.id)
+    # 将参数转为字典，传给调用方法的命名关键字参数
     param_dict = dict(((p.name, p.value) for p in param_list))
     log.info('column: ' + column_rule.column_name)
     log.info('function: ' + rule.function_name)

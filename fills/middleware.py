@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 
 
 class ErrorHandlerMiddleware(MiddlewareMixin):
+    """捕获报错的异常并返回统一结构的数据"""
 
     @staticmethod
     def process_exception(request: HttpRequest, exception):
@@ -21,6 +22,7 @@ class ErrorHandlerMiddleware(MiddlewareMixin):
 
 
 class ModifyServerHeaderMiddleware(MiddlewareMixin):
+    """修改响应头，不显示服务器的版本号"""
     @staticmethod
     def process_response(_, response):
         if hasattr(response, 'headers'):

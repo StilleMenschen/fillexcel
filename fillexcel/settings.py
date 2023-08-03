@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-fmhqgp5l666@46so9qb!ye^b#e&$#g+)ckop4m#o-9dmr6^)7o
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+# 生产环境需要指定可访问的域名
 ALLOWED_HOSTS = ('localhost',)
 
 # Application definition
@@ -97,7 +97,7 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': cache_config['backend'],
-        'TIMEOUT': timedelta(hours=2).total_seconds()
+        'TIMEOUT': timedelta(hours=2).total_seconds()  # 缓存默认2小时后失效
     }
 }
 
@@ -198,7 +198,7 @@ LOGGING = {
         'django.db.backends': {
             'handlers': ('console', 'sql'),
             'level': 'DEBUG',
-            'propagate': False
+            'propagate': False # 不追加到其它日志
         }
     },
     'root': {'level': 'INFO', 'handlers': ('console', 'file')}
@@ -206,13 +206,14 @@ LOGGING = {
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 改为指定 JWT 验证
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
     'PAGE_SIZE': 8
 }
-
+# Token 的有效期配置
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=4),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1)

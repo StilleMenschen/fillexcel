@@ -26,7 +26,10 @@ def convert_path(path):
 class Storage:
 
     def __init__(self, retry=4):
-        timeout = 30  # 30 秒超时
+        """对象存储
+        retry: 重试次数
+        """
+        timeout = 30  # 30 秒请求超时
         ca_certs = os.environ.get('SSL_CERT_FILE') or certifi.where()
         http_client = urllib3.PoolManager(
             timeout=urllib3.util.Timeout(connect=timeout, read=timeout),
@@ -40,6 +43,7 @@ class Storage:
             )
         )
         config = read_minio_config()
+        # 没有则创建存储桶
         self.bucket = config['bucket']
         del config['bucket']
         self.client = Minio(http_client=http_client, **config)
@@ -49,6 +53,12 @@ class Storage:
             print(f"Bucket '{self.bucket}' created")
 
     def store_object_for_path(self, hash_id, file_path, folder=None, content_type=None):
+        """存储对应路径的文件
+
+        file_path: 文件路径
+        folder: 对象存储的文件夹
+        content_type: 内容类型，默认 application/octet-stream
+        """
         p = convert_path(file_path)
         if folder:
             filename = f'{folder}/{hash_id}'
@@ -63,6 +73,13 @@ class Storage:
         return filename
 
     def store_object(self, hash_id, file, size, folder=None, content_type=None):
+        """直接存储文件
+
+        file: 文件，有 read() 方法
+        size: 文件大小
+        folder: 对象存储的文件夹
+        content_type: 内容类型，默认 application/octet-stream
+        """
         if folder:
             filename = f'{folder}/{hash_id}'
         else:
@@ -75,6 +92,10 @@ class Storage:
         return hash_id
 
     def get_object(self, file_id, folder=None) -> bytes:
+        """获得文件字节
+
+        folder: 对象存储的文件夹
+        """
         if folder:
             obj = self.client.get_object(self.bucket, f'{folder}/{file_id}')
         else:
@@ -82,6 +103,11 @@ class Storage:
         return obj.data
 
     def get_object_to_path(self, file_id, fspath, folder=None):
+        """获得文件并保存到指定路径
+
+        fspath: 存储的路径
+        folder: 对象存储的文件夹
+        """
         if folder:
             self.client.fget_object(self.bucket, f'{folder}/{file_id}', fspath)
         else:
