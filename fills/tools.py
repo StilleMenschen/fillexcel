@@ -31,7 +31,8 @@ def random_number_iter(start=1, stop=42, is_decimal=False, ndigits=2):
     :param is_decimal 是否包含小数位
     :param ndigits 小数位数
     """
-    if is_decimal:
+    if any((isinstance(is_decimal, str) and is_decimal.lower() == 'true',
+            isinstance(is_decimal, bool) and is_decimal)):
         start, stop, ndigits = max(1.0, float(start)), max(2.0, float(stop)), max(0, int(ndigits))
         if stop < start:
             start, stop = stop, start
@@ -42,7 +43,7 @@ def random_number_iter(start=1, stop=42, is_decimal=False, ndigits=2):
         if stop < start:
             start, stop = stop, start
         # 冻结参数
-        func = functools.partial(random.randrange, int(start), int(stop))
+        func = functools.partial(random.randrange, start, stop)
     while True:
         # 数值转为字符串
         yield str(func())
@@ -83,7 +84,7 @@ def calculate_expressions(expressions, value_dict):
     """
     # 先校验正确性
     if str(expressions) and not validate_expressions(expressions):
-        raise ValueError('expressions is invalid, allow character: 0-9 a-z A-Z +-*/. [space] {} ()')
+        raise ValueError('expressions is invalid, allow character: 0-9 A-Z +-*/. [space] {} ()')
     # 如果传入的值都是空的直接返回空
     if isinstance(value_dict, dict) and not len(value_dict):
         return None
@@ -91,7 +92,11 @@ def calculate_expressions(expressions, value_dict):
     compiled_expressions = _replace_expressions_variable(expressions, value_dict)
     # 利用内置的方法执行计算
     # 返回的数值转为字符串
-    return str(eval(compiled_expressions))
+    result = eval(compiled_expressions)
+    if isinstance(result, (int, float)):
+        # 保留 2 位小数
+        result = round(result, 2)
+    return str(result)
 
 
 def associated_fill(key_map_list: tuple, value_dict: dict):
