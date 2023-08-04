@@ -40,17 +40,13 @@ def write_value_list(column_rule: ColumnRule, rule: GenerateRule,
 def write_associated_list(column_rule: ColumnRule, rule: GenerateRule,
                           start_line: int, end_line: int, column_data: dict):
     """写入关联填入的对象数组"""
-    # 已经填入的值不需要重复填入
-    if column_rule.column_name in column_data:
-        return
     t0 = time.perf_counter()
     param = DataParameter.objects.get(column_rule_id__exact=column_rule.id)
-    data_bind = DataSetBind.objects.filter(data_set__exact=param.data_set_id)
+    data_bind = DataSetBind.objects.filter(data_set__exact=param.data_set_id, column_rule_id__exact=column_rule.id)
     data_value = DataSetValue.objects.filter(data_set__exact=param.data_set_id)
     if not len(data_bind) or not len(data_value):
         log.warning(f'{rule.function_name} -> {column_rule.column_name}: 关联填充数据为空')
         return
-    log.info(f'bind column count: {len(data_bind)}')
     log.info('function: ' + rule.function_name)
     # 数据集
     value_iter = value_list_iter((json.loads(v.item) for v in data_value))
