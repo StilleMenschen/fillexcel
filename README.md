@@ -60,7 +60,7 @@
 ### 首先拉取代码
 
 ```bash
-git clone https://gitee.com/stillemenschen/fillexcel.git
+git clone https://github.com/StilleMenschen/fillexcel.git
 cd fillexcel
 ```
 
@@ -79,7 +79,7 @@ docker compose up -d --build
 
 ### 前端文件
 
-由于是前后端分离的，前端代码参考对应的仓库 [fillexcel-front](https://gitee.com/stillemenschen/fillexcel-front)
+由于是前后端分离的，前端代码参考对应的仓库 [fillexcel-front](https://github.com/StilleMenschen/fillexcel-front)
 
 前端打包后的文件放置在 web 路径下
 
@@ -105,7 +105,7 @@ python manage.py migrate
 3. 拉取代码
 
    ```bash
-   git clone https://gitee.com/stillemenschen/fillexcel.git
+   git clone https://github.com/StilleMenschen/fillexcel.git
    cd fillexcel
    ```
 
