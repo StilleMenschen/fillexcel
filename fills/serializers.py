@@ -141,7 +141,7 @@ class GenerateRuleParameterSerializer(serializers.ModelSerializer):
 
 class FileUploadSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255, allow_blank=True, allow_null=True)
-    file = serializers.FileField(max_length=32, use_url=False)
+    file = serializers.FileField(max_length=255, use_url=False)
 
 
 class FileRecordSerializer(serializers.ModelSerializer):
