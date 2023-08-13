@@ -4,7 +4,7 @@ import tempfile
 import time
 
 import psycopg2
-import xlwings as xw
+import openpyxl
 from celery import Celery
 
 from fillexcel.configurator import read_postgres_config, read_celery_config
@@ -18,6 +18,20 @@ log = init_logger(__name__, 'celery-task.log')
 
 
 # celery -A fills.tasks worker -l INFO -c 2 -P eventlet
+
+def excel_column_to_number(column):
+    result = 0
+    for i in range(len(column)):
+        result = result * 26 + ord(column[i]) - ord('A') + 1
+    return result
+
+
+def foreach_rows(worksheet, start_line, excel_data: dict):
+    for column, data_list in excel_data.items():
+        for num, val in zip(range(start_line, start_line + len(data_list)), data_list):
+            worksheet[f'{column}{num}'] = str(val)
+            worksheet[f'{column}{num}'].number_format = '@'
+
 
 @app.task
 def write_to_excel(data_for_fill: dict):
@@ -43,17 +57,11 @@ def write_to_excel(data_for_fill: dict):
     # 填入数据
     start_line = data_for_fill['startLine']
     excel_data: dict = data_for_fill['data']
-    excel_app = xw.App(visible=False, add_book=False)
-    book = excel_app.books.open(save_path)
-    sheet = book.sheets.active
-    for column, data_list in excel_data.items():
-        range_len = len(data_list)
-        sheet.range(f'{column}{start_line}').value = tuple((v,) for v in data_list)
-        # 设置格式为文本
-        sheet.range(f'{column}{start_line}:{column}{start_line + range_len}').number_format = '@'
-    book.save()
+    book = openpyxl.load_workbook(str(save_path))
+    sheet = book.active
+    foreach_rows(sheet, start_line, excel_data)
+    book.save(str(save_path))
     book.close()
-    excel_app.quit()
     del data_for_fill['data']
     try:
         # 上传写入后的文件
