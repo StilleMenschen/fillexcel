@@ -43,7 +43,7 @@
 
 1. Django
 2. Celery
-3. xlwings
+3. openpyxl
 
 ## 外部服务
 
@@ -92,25 +92,3 @@ python manage.py migrate
 ```
 
 > 如果需要初始数据，可以执行脚本 fills/sql/fill_function_define.sql
-
-### 在 Windows/MacOS 机器上启动 Celery
-
-1. 在对应机器上安装 Python 3.11
-2. 通过 pip 安装依赖
-
-   ```bash
-   pip install -U celery xlwings psycopg2 redis certifi urllib3 minio
-   ```
-
-3. 拉取代码
-
-   ```bash
-   git clone https://gitee.com/stillemenschen/fillexcel.git
-   cd fillexcel
-   ```
-
-4. 项目根目录下，运行任务接收生成请求
-
-   ```bash
-   celery -A fills.tasks worker -l INFO -c 2 -P eventlet
-   ```

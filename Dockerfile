@@ -19,7 +19,8 @@ RUN set -x && \
     pip install uwsgi && \
     pip cache purge && \
     apk del build-base python3-dev linux-headers && \
-    apk cache clean
+    apk cache clean && \
+    mkdir /app/logs
 
 USER 101:101
 
