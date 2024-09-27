@@ -43,7 +43,7 @@
 
 1. Django
 2. Celery
-3. xlwings
+3. openpyxl
 
 ## 外部服务
 
@@ -60,7 +60,7 @@
 ### 首先拉取代码
 
 ```bash
-git clone https://github.com/StilleMenschen/fillexcel.git
+git clone https://gitee.com/stillemenschen/fillexcel.git
 cd fillexcel
 ```
 
@@ -79,7 +79,7 @@ docker compose up -d --build
 
 ### 前端文件
 
-由于是前后端分离的，前端代码参考对应的仓库 [fillexcel-front](https://github.com/StilleMenschen/fillexcel-front)
+由于是前后端分离的，前端代码参考对应的仓库 [fillexcel-front](https://gitee.com/stillemenschen/fillexcel-front)
 
 前端打包后的文件放置在 web 路径下
 
@@ -99,7 +99,7 @@ python manage.py migrate
 2. 通过 pip 安装依赖
 
    ```bash
-   pip install -U celery xlwings psycopg2 redis certifi urllib3 minio
+   pip install -U celery psycopg2 redis certifi urllib3 minio
    ```
 
 3. 拉取代码
