@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 
 from .configurator import read_postgres_config, read_celery_config
@@ -198,7 +198,7 @@ LOGGING = {
         'django.db.backends': {
             'handlers': ('console', 'sql'),
             'level': 'DEBUG',
-            'propagate': False # 不追加到其它日志
+            'propagate': False  # 不追加到其它日志
         }
     },
     'root': {'level': 'INFO', 'handlers': ('console', 'file')}

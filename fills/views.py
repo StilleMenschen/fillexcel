@@ -18,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
-from .cache import CacheManager
+from .cache import cache_evict, cacheable, CacheManager
 from .models import DataSet, DataSetDefine, DataSetValue, DataSetBind
 from .models import FillingRequirement, GenerateRule, GenerateRuleParameter, ColumnRule, DataParameter, FileRecord
 from .serializers import DataSetSerializer, DataSetDefineSerializer, DataSetValueSerializer, DataSetBindSerializer
@@ -38,12 +38,11 @@ log = logging.getLogger(__name__)
 
 
 # Create your views here.
-class UserView(APIView, CacheManager):
+class UserView(APIView):
     """
     用户信息查询
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'User'
 
     @staticmethod
     def get_object(username):
@@ -52,19 +51,16 @@ class UserView(APIView, CacheManager):
         except User.DoesNotExist:
             raise ValueError('未查询到对应用户信息')
 
+    @cacheable('username')
     def get(self, request, username=None):
 
-        def query():
-            user = self.get_object(username)
-            serializer = UserSerializer(user)
-            return serializer.data
+        user = self.get_object(username)
+        serializer = UserSerializer(user)
 
-        data = self.get_cache(username, query)
-
-        return Response(data)
+        return Response(serializer.data)
 
 
-class UserCreateView(APIView, CacheManager):
+class UserCreateView(APIView):
     """
     用户注册
     """
@@ -174,12 +170,11 @@ class FillingRequirementList(APIView, PagingViewMixin):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FillingRequirementDetail(APIView, CacheManager):
+class FillingRequirementDetail(APIView):
     """
     生成要求: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'FillingRequirementDetail'
 
     @staticmethod
     def get_object(pk):
@@ -188,30 +183,27 @@ class FillingRequirementDetail(APIView, CacheManager):
         except FillingRequirement.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            requirement = self.get_object(pk)
-            serializer = FillingRequirementSerializer(requirement)
-            return serializer.data
+        requirement = self.get_object(pk)
+        serializer = FillingRequirementSerializer(requirement)
 
-        data = self.get_cache(pk, query)
+        return Response(serializer.data)
 
-        return Response(data)
-
+    @cache_evict('pk')
     def put(self, request, pk):
         requirement = self.get_object(pk)
         serializer = FillingRequirementSerializer(requirement, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            self.invalid_cache(pk)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @cache_evict('pk')
     def delete(self, request, pk):
         requirement = self.get_object(pk)
         requirement.delete()
-        self.invalid_cache(pk)
         # 异步操作删除
         run_in_thread(self.delete_requirement_file, (requirement.file_id,))
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -258,12 +250,11 @@ class ColumnRuleList(APIView, PagingViewMixin):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ColumnRuleDetail(APIView, CacheManager):
+class ColumnRuleDetail(APIView):
     """
     列规则: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'ColumnRuleDetail'
 
     @staticmethod
     def get_object(pk):
@@ -272,17 +263,15 @@ class ColumnRuleDetail(APIView, CacheManager):
         except ColumnRule.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            column_rule = self.get_object(pk)
-            serializer = ColumnRuleSerializer(column_rule)
-            return serializer.data
+        column_rule = self.get_object(pk)
+        serializer = ColumnRuleSerializer(column_rule)
 
-        data = self.get_cache(pk, query)
+        return Response(serializer.data)
 
-        return Response(data)
-
+    @cache_evict('pk')
     def put(self, request, pk):
         # 同一个填充要求中存在列名重复判断
         column_name = request.data['column_name']
@@ -293,14 +282,13 @@ class ColumnRuleDetail(APIView, CacheManager):
         serializer = ColumnRuleSerializer(column_rule, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            self.invalid_cache(pk)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @cache_evict('pk')
     def delete(self, request, pk):
         column_rule = self.get_object(pk)
         column_rule.delete()
-        self.invalid_cache(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -383,12 +371,11 @@ class DataParameterList(APIView, PagingViewMixin):
             raise ValueError(f'传入的关联列 "{column_name}" 的生成规则不能为列值拼接、表达式计算')
 
 
-class DataParameterDetail(APIView, CacheManager):
+class DataParameterDetail(APIView):
     """
     填充函数参数: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'DataParameterDetail'
 
     @staticmethod
     def get_object(pk):
@@ -397,30 +384,27 @@ class DataParameterDetail(APIView, CacheManager):
         except DataParameter.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            data_parameter = self.get_object(pk)
-            serializer = DataParameterSerializer(data_parameter)
-            return serializer.data
+        data_parameter = self.get_object(pk)
+        serializer = DataParameterSerializer(data_parameter)
 
-        data = self.get_cache(pk, query)
+        return Response(serializer.data)
 
-        return Response(data)
-
+    @cache_evict('pk')
     def put(self, request, pk):
         data_parameter = self.get_object(pk)
         serializer = DataParameterSerializer(data_parameter, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            self.invalid_cache(pk)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @cache_evict('pk')
     def delete(self, request, pk):
         data_parameter = self.get_object(pk)
         data_parameter.delete()
-        self.invalid_cache(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -449,12 +433,11 @@ class DataSetList(APIView, PagingViewMixin):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class DataSetDetail(APIView, CacheManager):
+class DataSetDetail(APIView):
     """
     数据集: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'DataSetDetail'
 
     @staticmethod
     def get_object(pk):
@@ -463,26 +446,24 @@ class DataSetDetail(APIView, CacheManager):
         except DataSet.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            data_set = self.get_object(pk)
-            serializer = DataSetSerializer(data_set)
-            return serializer.data
+        data_set = self.get_object(pk)
+        serializer = DataSetSerializer(data_set)
 
-        data = self.get_cache(pk, query)
+        return Response(serializer.data)
 
-        return Response(data)
-
+    @cache_evict('pk')
     def put(self, request, pk):
         data_set = self.get_object(pk)
         serializer = DataSetSerializer(data_set, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            self.invalid_cache(pk)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @cache_evict('pk')
     def delete(self, request, pk):
         # 列绑定和规则绑定的数据集都不能删除
         if DataSetBind.objects.filter(data_set_id__exact=pk).exists() or DataParameter.objects.filter(
@@ -490,7 +471,6 @@ class DataSetDetail(APIView, CacheManager):
             raise ValueError('已存在绑定此数据集的生成规则配置，不能删除')
         data_set = self.get_object(pk)
         data_set.delete()
-        self.invalid_cache(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -534,12 +514,11 @@ class DataSetDefineList(APIView, PagingViewMixin, CacheManager):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class DataSetDefineDetail(APIView, CacheManager):
+class DataSetDefineDetail(APIView):
     """
     数据集定义: 单个查询/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'DataSetDefineDetail'
 
     @staticmethod
     def get_object(pk):
@@ -548,21 +527,18 @@ class DataSetDefineDetail(APIView, CacheManager):
         except DataSetDefine.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            data_set_define = self.get_object(pk)
-            serializer = DataSetDefineSerializer(data_set_define)
-            return serializer.data
+        data_set_define = self.get_object(pk)
+        serializer = DataSetDefineSerializer(data_set_define)
 
-        data = self.get_cache(pk, query)
+        return Response(serializer.data)
 
-        return Response(data)
-
+    @cache_evict('pk')
     def delete(self, request, pk):
         data_set_define = self.get_object(pk)
         data_set_define.delete()
-        self.invalid_cache(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -590,12 +566,11 @@ class DataSetValueList(APIView, PagingViewMixin):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class DataSetValueDetail(APIView, CacheManager):
+class DataSetValueDetail(APIView):
     """
     数据集数据: 单个查询/修改/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'DataSetValueDetail'
 
     @staticmethod
     def get_object(pk):
@@ -604,30 +579,27 @@ class DataSetValueDetail(APIView, CacheManager):
         except DataSetValue.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            data_set_value = self.get_object(pk)
-            serializer = DataSetValueSerializer(data_set_value)
-            return serializer.data
+        data_set_value = self.get_object(pk)
+        serializer = DataSetValueSerializer(data_set_value)
 
-        data = self.get_cache(pk, query)
+        return Response(serializer.data)
 
-        return Response(data)
-
+    @cache_evict('pk')
     def put(self, request, pk):
         data_set_value = self.get_object(pk)
         serializer = DataSetValueSerializer(data_set_value, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            self.invalid_cache(pk)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @cache_evict('pk')
     def delete(self, request, pk):
         data_set_value = self.get_object(pk)
         data_set_value.delete()
-        self.invalid_cache(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -668,12 +640,11 @@ class DataSetBindList(APIView, PagingViewMixin):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class DataSetBindDetail(APIView, CacheManager):
+class DataSetBindDetail(APIView):
     """
     数据集绑定: 单个查询/删除
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'DataSetBindDetail'
 
     @staticmethod
     def get_object(pk):
@@ -682,21 +653,18 @@ class DataSetBindDetail(APIView, CacheManager):
         except DataSetBind.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            data_set_bind = self.get_object(pk)
-            serializer = DataSetBindSerializer(data_set_bind)
-            return serializer.data
+        data_set_bind = self.get_object(pk)
+        serializer = DataSetBindSerializer(data_set_bind)
 
-        data = self.get_cache(pk, query)
+        return Response(serializer.data)
 
-        return Response(data)
-
+    @cache_evict('pk')
     def delete(self, request, pk):
         data_set_bind = self.get_object(pk)
         data_set_bind.delete()
-        self.invalid_cache(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -720,12 +688,11 @@ class GenerateRuleList(APIView, PagingViewMixin, CacheManager):
         return Response(data)
 
 
-class GenerateRuleDetail(APIView, CacheManager):
+class GenerateRuleDetail(APIView):
     """
     生成规则: 单个查询
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'GenerateRuleDetail'
 
     @staticmethod
     def get_object(pk):
@@ -734,16 +701,13 @@ class GenerateRuleDetail(APIView, CacheManager):
         except GenerateRule.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            generate_rule = self.get_object(pk)
-            serializer = GenerateRuleSerializer(generate_rule)
-            return serializer.data
+        generate_rule = self.get_object(pk)
+        serializer = GenerateRuleSerializer(generate_rule)
 
-        data = self.get_cache(pk, query)
-
-        return Response(data)
+        return Response(serializer.data)
 
 
 class GenerateRuleParameterList(APIView, PagingViewMixin, CacheManager):
@@ -772,12 +736,11 @@ class GenerateRuleParameterList(APIView, PagingViewMixin, CacheManager):
         return Response(data)
 
 
-class GenerateRuleParameterDetail(APIView, CacheManager):
+class GenerateRuleParameterDetail(APIView):
     """
     生成规则残参数: 单个查询
     """
     permission_classes = (permissions.IsAuthenticated,)
-    cache_prefix = 'GenerateRuleParameterDetail'
 
     @staticmethod
     def get_object(pk):
@@ -786,16 +749,13 @@ class GenerateRuleParameterDetail(APIView, CacheManager):
         except GenerateRuleParameter.DoesNotExist:
             raise ValueError('未查询到对应数据')
 
+    @cacheable('pk')
     def get(self, request, pk):
 
-        def query():
-            generate_rule_parameter = self.get_object(pk)
-            serializer = GenerateRuleParameterSerializer(generate_rule_parameter)
-            return serializer.data
+        generate_rule_parameter = self.get_object(pk)
+        serializer = GenerateRuleParameterSerializer(generate_rule_parameter)
 
-        data = self.get_cache(pk, query)
-
-        return Response(data)
+        return Response(serializer.data)
 
 
 class GeneratesView(APIView):
